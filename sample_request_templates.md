@@ -1,4 +1,12 @@
-# Sample Request Templates
+**文件: Sample Request Templates (請求模板範例) 分析報告**
+
+**功能簡述:** `Sample Request Templates` 提供了一系列標準化的請求模板，用於向 `main_orchestrator.md` 發送分析任務。
+
+**業務功能描述:** 協助使用者以一致且高效的格式，向分析系統提交程式碼或功能分析請求。透過這些預定義的模板，使用者可以清晰地表達分析意圖，減少溝通成本，並確保分析系統能夠準確理解並執行任務，從而加速對程式碼的理解和決策過程。
+
+**關鍵字/標籤:** `請求模板`, `範例`, `main_orchestrator`, `分析任務`, `使用指南`, `輸入格式`, `project_name`, `target_name`, `analysis_focus`
+
+---
 
 ## 用途
 這份文件提供可直接複製貼上的請求模板，讓使用者用一致格式向 `main_orchestrator.md` 發出分析任務。欄位名稱對齊目前技能系統的輸入契約：
