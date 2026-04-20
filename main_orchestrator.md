@@ -3,6 +3,7 @@
 ## 角色定位
 你是整套分析流程的唯一入口，負責接收使用者指定的專案、程式、方法、功能或流程名稱，再決定如何串接下列技能：
 
+- `feature_capability_mapper.md`
 - `project_navigator.md`
 - `dependency_mapper.md`
 - `inter_service_communication.md`
@@ -41,7 +42,7 @@
 ## 分析模式限制
 當任務目的是「解析程式」或「解析系統功能」時，必須進入唯讀分析模式，遵守以下硬性規則：
 
-- 不可修改任何 skill 文件，包含 `main_orchestrator.md`、`project_navigator.md`、`dependency_mapper.md`、`inter_service_communication.md`、`roleIdentity_synthesizer.md`、`sample_request_templates.md` 與其他 `.md` 規格文件。
+- 不可修改任何 skill 文件，包含 `main_orchestrator.md`、`feature_capability_mapper.md`、`project_navigator.md`、`dependency_mapper.md`、`inter_service_communication.md`、`roleIdentity_synthesizer.md`、`sample_request_templates.md` 與其他 `.md` 規格文件。
 - 不可修改任何專案程式、設定檔、SQL、XML、YAML、建置檔或測試檔。
 - 不可因分析任務而重構、修 bug、補註解、調整命名或改動資料夾結構。
 - 分析任務唯一允許的輸出，是在 `analysis_output/<project_name>/` 目錄下新增或更新正式報告 `.md` 檔。
@@ -58,6 +59,7 @@
     /project-b
   /analysis_output
   main_orchestrator.md
+  feature_capability_mapper.md
   project_navigator.md
   dependency_mapper.md
   inter_service_communication.md
@@ -88,7 +90,8 @@
 |----------|----------|------------|----------|
 | 專案結構導覽 | 專案結構、模組架構、檔案導航 | `project_navigator.md` | 模組樹、層級定位、入口模組 |
 | 單一程式/類別分析 | 類別名、檔名、方法名 | `project_navigator.md` -> `dependency_mapper.md` -> `inter_service_communication.md` -> `roleIdentity_synthesizer.md` | 用途、路由鏈、上下游、契約、異常流、修改風險 |
-| 功能/流程分析 | 下單流程、支付流程、某功能鏈路 | `project_navigator.md` -> `inter_service_communication.md` -> `dependency_mapper.md` -> `roleIdentity_synthesizer.md` | 入口到落庫/出站的完整鏈路 |
+| 功能/流程分析 | 下單流程、支付流程、某功能鏈路 | `feature_capability_mapper.md` -> `project_navigator.md` -> `inter_service_communication.md` -> `dependency_mapper.md` -> `roleIdentity_synthesizer.md` | 入口到落庫/出站的完整鏈路 |
+| 功能反查/能力分析 | 已知功能，不知道對應哪些程式，例如 log 集中化、審計、配置中心、通知 | `feature_capability_mapper.md` -> `project_navigator.md` -> `dependency_mapper.md` -> `inter_service_communication.md` -> `roleIdentity_synthesizer.md` | 功能定義、相關程式群、核心鏈路、設定與風險 |
 | 跨專案比較 | 同一功能在多個專案的差異 | 每個專案先跑完整鏈，再交叉比對 | 差異表、風險點、契約差異 |
 | 模糊查詢 | 名稱過泛、候選過多 | 先 `project_navigator.md` 縮小範圍，再決定後續技能 | 候選清單與建議精煉方向 |
 
@@ -105,6 +108,14 @@
 - 目標位於哪個模組、哪一層
 - 相鄰元件：Controller、Service、Repository、Client、Config、DTO、SQL/XML
 - 是否為流程入口、橋接節點、底層共用元件或內部分流目標
+
+若使用者提供的是「系統功能」而非已知程式名，例如：
+- log 集中化如何運作
+- 權限驗證如何運作
+- 審計軌跡如何落地
+- 配置中心如何生效
+
+則必須先改由 `feature_capability_mapper.md` 做功能反查，先找出相關程式群、設定檔、基礎設施接點與核心鏈路，再把候選程式交給後續技能深入分析。
 
 ### 2. 路由鏈重建
 若目標不是直接暴露為 REST API，而是經由 gRPC、dispatcher、workflow、batch 或 event router 進入，必須補齊：
@@ -190,6 +201,23 @@ analysis_output/<project_name>/<project_name>__<target_name>__analysis.md
 - `entry_clues`
 - `router_clues`
 
+### `feature_capability_mapper.md`
+負責回答：
+- 這個功能在系統中的業務/技術定義是什麼？
+- 與該功能最相關的程式、設定、SQL、middleware 接點有哪些？
+- 哪些是核心元件，哪些只是周邊輔助元件？
+- 這個功能的主要執行鏈路、開關配置與外部依賴是什麼？
+
+至少帶回：
+- `feature_definition`
+- `feature_keywords`
+- `candidate_components`
+- `core_components`
+- `supporting_components`
+- `feature_flow`
+- `feature_configs`
+- `feature_risks`
+
 ### `dependency_mapper.md`
 負責回答：
 - 目標依賴了哪些內部模組與第三方元件？
@@ -252,6 +280,16 @@ analysis_output/<project_name>/<project_name>__<target_name>__analysis.md
 | 類型/層級 | |
 | 主要職責 | |
 
+若本次為功能反查型任務，可改為：
+
+| 欄位 | 內容 |
+|------|------|
+| 專案/模組 | |
+| 功能名稱 | |
+| 核心元件 | |
+| 周邊元件 | |
+| 主要職責 | |
+
 ## 3. 用途說明
 - 這個程式/功能主要負責：
 - 所屬業務上下文：
@@ -304,6 +342,15 @@ analysis_output/<project_name>/<project_name>__<target_name>__analysis.md
 - [Confirmed] 檔案/方法/line：
 - [Inferred] 推定原因：
 - [Unknown] 尚未取得的資訊：
+```
+
+若本次為功能反查型任務，報告中至少還要補一段：
+
+```markdown
+## 功能元件清單
+| 類型 | 元件 | 證據 | 說明 |
+|------|------|------|------|
+| Core / Supporting / Config / Infra | | | |
 ```
 
 ## 輸出語言與檔案規格

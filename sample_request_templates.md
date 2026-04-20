@@ -66,6 +66,26 @@ analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常
 scope_hint: create order, order submit, payment, inventory
 ```
 
+## Template 4-1: 從系統功能反查相關程式
+
+```text
+project_name: project-a
+target_name: log 集中化如何運作
+target_type: feature
+analysis_focus: 用途, 上下游, 交易細節, 依賴影響, 路由鏈, 資料契約, 異常流
+scope_hint: logback, appender, fluentd, elk, opensearch, tracing, logging config
+```
+
+## Template 4-2: 從系統能力反查並找出多支核心程式
+
+```text
+project_name: project-a
+target_name: 權限驗證如何運作
+target_type: feature
+analysis_focus: 用途, 上下游, 依賴影響, 路由鏈, 資料契約, 異常流
+scope_hint: auth filter, interceptor, token, jwt, permission, role, security config
+```
+
 ## Template 5: 專案結構導覽
 
 ```text
@@ -157,6 +177,7 @@ scope_hint: dispatcher, txCode, dscpt, request header, response header, error ha
 - 若已知類別名，優先提供 `target_type: class` 或 `target_type: file`。
 - 若要查完整交易流，`analysis_focus` 建議至少包含 `上下游, 交易細節`。
 - 若目標是 gRPC、batch、MQ、workflow 或內部分流服務，建議再加 `路由鏈, 資料契約, 異常流`。
+- 若你知道的是「系統功能」而不是程式名，請直接把功能句子放在 `target_name`，例如 `log 集中化如何運作`。
 - 若只知道 API、topic、table、workflow key，也可以當成 `target_name` 或放進 `scope_hint`。
 - 若要比較兩個專案，請在 `project_name` 一次列出多個專案。
 - 若你希望直接產生正式報告檔，可在需求中明寫「請輸出到 `analysis_output/<project_name>/*.md`」，但目前規格已預設如此。
