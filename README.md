@@ -6,6 +6,7 @@
 - 分析任務採唯讀模式：只讀專案與 skill 文件，只輸出報告。
 - 正式報告必須用繁體中文、Markdown、`.md` 副檔名。
 - 正式報告固定輸出到 `analysis_output/<project_name>/`。
+- 描述程式流程、交易流程、路由鏈或資料流時，優先補 Mermaid 流程圖。
 - 每個結論都要標示 `Confirmed`、`Inferred`、`Unknown`。
 - 正式報告輸出前，必須經過第十人原則審查。
 
@@ -31,7 +32,7 @@
 project_name: 專案名稱
 target_name: 類別名 / 方法名 / 功能名
 target_type: class / file / method / feature / flow
-analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常流
+analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常流, 流程圖
 scope_hint: 其他線索
 output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
@@ -42,7 +43,7 @@ output_requirements: 繁體中文, analysis_output/<project_name>/, md
 project_name: billing-core
 target_name: G0126RIM01Service
 target_type: class
-analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常流
+analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常流, 流程圖
 ```
 
 ### 2. 已知功能
@@ -50,7 +51,7 @@ analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常
 project_name: payment-platform
 target_name: log 集中化如何運作
 target_type: feature
-analysis_focus: 用途, 上下游, 交易細節, 依賴影響, 路由鏈, 資料契約, 異常流
+analysis_focus: 用途, 上下游, 交易細節, 依賴影響, 路由鏈, 資料契約, 異常流, 流程圖
 scope_hint: logback, appender, fluentd, elk, tracing
 ```
 
@@ -59,6 +60,6 @@ scope_hint: logback, appender, fluentd, elk, tracing
 project_name: account-service
 target_name: UserSyncService.java
 target_type: file
-analysis_focus: 實作細節, 變數分析, 方法分析, 物件結構, 完整流程
+analysis_focus: 實作細節, 變數分析, 方法分析, 物件結構, 完整流程, 流程圖
 scope_hint: 我不想看原始碼，請完整拆解
 ```
