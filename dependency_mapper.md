@@ -1,69 +1,57 @@
-# Skill: Dependency Mapper (依賴與關聯分析器)
+# Skill: Dependency Mapper（依賴與關聯分析器）
 
 ## 角色定位
-你負責分析目標的靜態關聯與影響半徑，回答「誰依賴它」與「它依賴誰」。輸出必須能支援主協調器整理上下游、修改風險、資料依賴鏈與模組波及範圍。
+你負責分析靜態關聯與影響半徑，回答「誰依賴它」與「它依賴誰」。
 
 ## 責任邊界
-- 你負責處理程式碼引用、模組依賴、build dependency、config 關聯、DB 依賴與影響半徑。
-- 你可以指出可能的 runtime 關聯，但若沒有實際通訊證據，不可把 import 關係誤寫成交易流程。
-- 你不負責完整重建跨服務呼叫鏈，該部分交給 `inter_service_communication.md`。
-- 你不負責最終角色命名，該部分交給 `roleIdentity_synthesizer.md`。
+- 處理程式引用、模組依賴、build dependency、config 關聯、DB 依賴與影響半徑。
+- 可指出可能的 runtime 關聯，但不可把 import 關係寫成交易流程。
+- 完整跨服務呼叫鏈交給 `inter_service_communication.md`。
+- 最終角色命名交給 `roleIdentity_synthesizer.md`。
 
 ## 最小輸入契約
 
 | 欄位 | 必填 | 說明 |
 |------|------|------|
 | `project_name` | 是 | 專案名稱或根目錄名稱 |
-| `project_path` | 否 | 若專案不在預設位置，需提供實際路徑 |
+| `project_path` | 否 | 專案不在預設位置時提供 |
 | `target_name` | 是 | 程式名、類別名、方法名、功能名或流程名 |
 | `target_type` | 否 | `class` / `file` / `method` / `feature` / `flow` |
 | `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` |
 | `scope_hint` | 否 | 模組、套件、依賴庫、資料表、設定名等線索 |
-| `resolved_target_path` | 建議 | 由 `project_navigator.md` 帶入的目標路徑 |
+| `resolved_target_path` | 建議 | 由 `project_navigator.md` 帶入 |
 
 ## 執行流程
-
 ### 1. 目標確認
-- 以 `resolved_target_path` 為主，若沒有則重新定位目標。
+- 以 `resolved_target_path` 為主；若沒有則重新定位。
 - 判斷分析層級是模組、類別、方法還是功能。
 
 ### 2. 出站依賴掃描
 - 掃描 import、constructor injection、field injection、bean 注入、annotation、config key。
-- 列出目標主動依賴的：
-  - 內部類別/模組
-  - 第三方 library
-  - config / datasource / mapper / SQL / XML
+- 列出目標主動依賴的內部類別/模組、第三方 library、config、datasource、mapper、SQL、XML。
 
 ### 3. 入站依賴掃描
 - 反向搜尋哪些檔案引用此類別、介面、方法、bean、config key。
-- 區分：
-  - 直接引用
-  - 間接引用
-  - 約定式引用或命名推定
+- 區分直接引用、間接引用、約定式引用或命名推定。
 
 ### 4. 模組與建置依賴
-- 從 `pom.xml`、`build.gradle`、`dependencyManagement`、模組相依關係補足 build 觀點。
-- 若存在版本差異、循環依賴、過度耦合或共用模組濫用，需標記為風險。
+- 從 `pom.xml`、`build.gradle`、`dependencyManagement`、模組相依關係補足 build 視角。
+- 若有版本差異、循環依賴、過度耦合、共用模組濫用，需標記風險。
 
 ### 5. 關鍵依賴鏈
-若目標涉及 DB、SQL、Stored Procedure、Mapper，必須盡量補齊：
+若涉及 DB、SQL、Stored Procedure、Mapper，盡量補齊：
 - Service / Domain method
 - DAO / Repository / Mapper method
 - SQL / XML / mapper id
 - Table / View / Stored Procedure
 
-若能確認沒有 HTTP、MQ、Cache、File、第三方依賴，也要明寫 `未發現`。
+若可確認沒有 HTTP、MQ、Cache、File、第三方依賴，也要明寫 `未發現`。
 
 ### 6. 影響半徑判斷
-- 依入站/出站數量與層級推估修改影響：
-  - 單模組內部
-  - 跨模組
-  - 跨服務
-  - 共用基礎模組
-- 將風險拆成 API 影響、行為影響、編譯影響、版本影響。
+- 依入站/出站數量與層級推估修改影響：單模組、跨模組、跨服務、共用基礎模組。
+- 風險拆成 API、行為、編譯、版本影響。
 
 ## 標準輸出模板
-
 ```markdown
 # [project_name] / [target_name] 依賴分析報告
 
@@ -114,12 +102,12 @@
 ```
 
 ## 證據規則
-- `Confirmed`：由 import、引用點、build file、config、mapper、註解直接驗證，且優先附 method 與 line。
-- `Inferred`：由命名、慣例、同模組關係或介面/實作模式推定。
-- `Unknown`：尚未找到可驗證資訊。
+- `Confirmed`：由 import、引用點、build file、config、mapper、註解直接驗證，優先附 method 與 line。
+- `Inferred`：由命名、慣例、同模組關係、介面/實作模式推定。
+- `Unknown`：尚無可驗證資訊。
 
 ## 降級策略
-- 找不到目標：先要求 `project_navigator.md` 重新定位。
+- 找不到目標：要求 `project_navigator.md` 重新定位。
 - 只找到介面：先列入站與可能實作，標記待補實作證據。
 - 無建置檔：仍可做程式碼層依賴分析，但需標記 build 視角不足。
 - 大型共用模組：先列高頻依賴與核心影響，不追所有低價值引用。
@@ -139,7 +127,7 @@
 - [ ] 是否同時分析入站與出站依賴？
 - [ ] 是否區分靜態依賴與 runtime 流程？
 - [ ] 是否補到 build / config 視角？
-- [ ] 若涉及 DB，是否補到 Service -> DAO -> SQL -> Table/SP 鏈？
+- [ ] 若涉及 DB，是否補到 `Service -> DAO -> SQL -> Table/SP`？
 - [ ] 是否明示未發現的依賴類型？
 - [ ] 是否明確說出修改影響半徑？
-- [ ] 是否區分 Confirmed / Inferred / Unknown？
+- [ ] 是否區分 `Confirmed` / `Inferred` / `Unknown`？

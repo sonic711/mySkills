@@ -1,145 +1,111 @@
-# Skill: Feature Capability Mapper (功能能力反查器)
+# Skill: Feature Capability Mapper（功能反查器）
 
 ## 角色定位
-你負責處理「已知功能，不知道對應哪些程式」的分析任務。你的工作是從功能描述、關鍵詞、系統術語、設定名稱、外部依賴與運作現象反查出相關程式群，並將它們整理成可供後續技能深挖的功能地圖。
-
-典型問題包括：
-- log 集中化是如何運作的？
-- 權限驗證如何生效？
-- 審計軌跡寫在哪裡？
-- 配置中心如何下發並生效？
-- 通知功能由哪些程式組成？
+你負責處理「知道功能，不知道程式」的任務。先找出承載該功能的程式、設定、資料流與核心元件，再交給其他 skill 深挖。
 
 ## 責任邊界
-- 你負責先找出功能對應的多個候選元件，而不是只鎖定單一類別。
-- 你負責區分核心元件與周邊元件，避免把所有搜到的檔案全部當成核心。
-- 你可以輸出功能主鏈路，但不應取代後續技能做逐檔深度依賴或完整通訊驗證。
-- 若功能描述過於抽象，必須先縮小語意範圍，不可直接硬猜。
+- 你負責把功能問題收斂成可搜尋線索，找出候選元件並區分核心與周邊。
+- 你可以輸出多個候選程式，不可硬壓成單一檔案。
+- 你不直接取代依賴分析、通訊分析或角色命名，而是提供候選地圖與優先順序。
 
 ## 最小輸入契約
 
 | 欄位 | 必填 | 說明 |
 |------|------|------|
 | `project_name` | 是 | 專案名稱或根目錄名稱 |
-| `project_path` | 否 | 若專案不在預設位置，需提供實際路徑 |
-| `target_name` | 是 | 功能名、能力名、現象描述、系統術語 |
-| `target_type` | 建議 | `feature` / `flow` |
+| `project_path` | 否 | 專案不在預設位置時提供 |
+| `target_name` | 是 | 功能名、能力描述或流程問題 |
+| `target_type` | 建議 | `feature` |
 | `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `路由鏈` / `資料契約` / `異常流` |
-| `scope_hint` | 否 | 關鍵字、模組、設定名、topic、table、middleware、外部平台、例外訊息等線索 |
+| `scope_hint` | 否 | 關鍵字、框架、topic、API path、table、設定名、技術名詞 |
 
 ## 執行流程
-
 ### 1. 功能語意收斂
-- 先把功能問題拆成可搜尋的語意群：
-  - 業務詞，例如 `審計`、`通知`
-  - 技術詞，例如 `logging`、`trace`、`elk`、`opensearch`
-  - 基礎設施詞，例如 `fluentd`、`kafka`、`redis`
-  - 設定詞，例如 `logback`、`appender`、`spring profiles`
-- 若 `target_name` 過於抽象，優先產出 2-5 個功能搜尋關鍵詞。
+- 把功能句子拆成同義詞、技術詞、元件詞、資料詞、事件詞。
+- 先區分這是偏入口、流程、基礎設施、資料、整合或監控能力。
 
-### 2. 候選元件發掘
-- 從以下來源找候選：
-  - 類別名、package、方法名
-  - 設定檔、YAML、properties、XML
-  - SQL、table、stored procedure
-  - build 依賴、starter、middleware client
-  - 日誌格式、header 名稱、topic、路由鍵
-- 將結果分成：
-  - `core_components`
-  - `supporting_components`
-  - `config_components`
-  - `infra_touchpoints`
+### 2. 候選元件搜尋
+- 搜尋類別名、方法名、設定、註解、SQL、topic、log key、table、bean 名稱。
+- 需要時補抓 README、yaml、xml、build dependency、啟動配置。
 
-### 3. 功能主鏈路整理
-- 從候選元件中整理功能主鏈路：
-  - 入口在哪裡
-  - 主要邏輯在哪裡
-  - 資料如何傳遞
-  - 與外部系統或中介層如何互動
-- 若功能是橫切能力，例如 log 集中化，允許輸出多條鏈，而不是強迫單一路徑。
+### 3. 核心/周邊切分
+- 核心元件：直接承載功能邏輯、協調流程或對外契約。
+- 周邊元件：設定、adapter、DTO、DAO、監控、測試、工具類。
+- 若候選過多，按相關度排序。
 
-### 4. 核心/周邊裁切
-- 核心元件必須符合至少一項：
-  - 直接實作功能主邏輯
-  - 控制功能是否生效
-  - 與外部能力直接整合
-- 周邊元件可包含：
-  - DTO
-  - util
-  - wrapper
-  - adapter
-  - observer
+### 4. 功能鏈初步重建
+- 補出可能入口、主要處理節點、下游去向、資料載體、配置開關。
+- 若只找到局部元件，明寫缺口，不補腦。
 
-### 5. 交棒給後續技能
-- 將核心元件清單與主鏈路交給：
-  - `project_navigator.md` 做精準定位
-  - `dependency_mapper.md` 做依賴鏈與 DB 鏈
-  - `inter_service_communication.md` 做上下游與契約分析
-  - `roleIdentity_synthesizer.md` 做整體角色與風險判定
+### 5. 移交後續 skill
+- 對核心元件交給 `project_navigator.md`、`dependency_mapper.md`、`inter_service_communication.md`。
+- 若使用者要求單一檔案完整拆解，再交給 `implementation_deep_dive.md`。
 
 ## 標準輸出模板
-
 ```markdown
 # [project_name] / [target_name] 功能反查報告
 
 ## 1. 任務摘要
-- 分析目標：
-- 已知線索：
+- 功能問題：
+- 已確認資訊：
 - 尚未確認資訊：
 
-## 2. 功能定義
-- 這個功能在系統中的意義：
-- 預期解決的問題：
-- 主要技術關鍵詞：
+## 2. 功能語意拆解
+| 類型 | 內容 | 用途 |
+|------|------|------|
+| 關鍵字 / 技術詞 / 資料詞 / 事件詞 | | |
 
-## 3. 功能元件清單
-| 類型 | 元件 | 證據 | 說明 |
-|------|------|------|------|
-| Core / Supporting / Config / Infra | | | |
+## 3. 候選元件
+| 類型 | 名稱/路徑 | 相關度 | 理由 |
+|------|-----------|--------|------|
+| Class / Config / SQL / Topic / Table / Module | | `高` / `中` / `低` | |
 
-## 4. 功能主鏈路
-1. 功能入口：
-2. 核心處理元件：
-3. 設定/開關：
-4. 外部依賴或中介層：
-5. 結果輸出/副作用：
+## 4. 核心元件與周邊元件
+- 核心元件：
+- 周邊元件：
+- 排除或低信心候選：
 
-## 5. 後續深挖建議
-- 優先分析的核心程式：
-- 優先驗證的設定檔：
-- 優先追的上下游鏈路：
+## 5. 初步功能鏈
+- 可能入口：
+- 核心處理節點：
+- 可能下游：
+- 關鍵資料/物件：
+- 可能配置開關：
 
-## 6. 關鍵證據
-- [Confirmed] 檔案/方法/line：
-- [Confirmed] 設定/依賴/line：
+## 6. 建議後續分析路徑
+1. 先深入：
+2. 再補依賴：
+3. 再補通訊/交易鏈：
+
+## 7. 關鍵證據
+- [Confirmed] 類別/設定/SQL/line：
+- [Confirmed] topic / path / table / line：
 - [Inferred] 推定原因：
 ```
 
 ## 證據規則
-- `Confirmed`：由程式碼、設定檔、build 依賴、SQL、middleware 設定直接驗證。
-- `Inferred`：由命名、模組結構、配置命名或運作慣例綜合推定。
-- `Unknown`：目前尚未找到足夠證據支撐。
+- `Confirmed`：由類別、方法、設定、註解、SQL、topic、table、build dependency 直接驗證。
+- `Inferred`：由名稱、位置、相鄰設定、使用情境推定。
+- `Unknown`：尚無足夠證據。
 
 ## 降級策略
-- 功能過於抽象：先拆出關鍵詞與候選能力面向。
-- 候選元件過多：先列前幾個核心元件與代表性設定，避免報告失焦。
-- 找不到直接程式：轉而查設定檔、build 依賴與基礎設施整合點。
-- 功能屬於跨模組橫切能力：允許輸出多個核心元件，而非硬壓成單一路徑。
+- 只找到技術元件，找不到業務核心：先列候選群與缺口。
+- 候選過多：先按相關度排序，不強行收斂為單一路徑。
+- 只找到設定，找不到實作：標記功能入口未閉合，待補實作證據。
 
 ## 對主協調器回傳欄位
-- `feature_definition`
 - `feature_keywords`
 - `candidate_components`
 - `core_components`
 - `supporting_components`
-- `config_components`
-- `infra_touchpoints`
-- `feature_flow`
-- `feature_risks`
+- `suspected_entrypoints`
+- `suspected_data_artifacts`
+- `followup_recommendations`
 
 ## 品質門檻
-- [ ] 是否先做功能語意收斂，而不是直接猜一支 class？
-- [ ] 是否區分核心元件與周邊元件？
-- [ ] 是否補到設定檔、build 依賴或基礎設施接點？
-- [ ] 是否允許多支程式共同構成功能，而非硬塞成單一檔案？
-- [ ] 是否區分 Confirmed / Inferred / Unknown？
+- [ ] 是否先做功能語意收斂？
+- [ ] 是否接受多個候選，不硬壓成單一檔案？
+- [ ] 是否區分核心與周邊元件？
+- [ ] 是否明示缺口與低信心候選？
+- [ ] 是否提供可執行的後續分析順序？
+- [ ] 是否區分 `Confirmed` / `Inferred` / `Unknown`？

@@ -1,238 +1,145 @@
-# Sample Request Templates
-
-## 用途
-這份文件提供可直接複製貼上的請求模板，讓使用者以一致格式向 `main_orchestrator.md` 發出分析任務。欄位名稱對齊目前技能系統的輸入契約：
-
-- `project_name`
-- `project_path`
-- `target_name`
-- `target_type`
-- `analysis_focus`
-- `scope_hint`
-
-若資訊不完整，也可先用簡化模板；但建議至少提供 `project_name` 與 `target_name`。
+# Sample Request Templates（請求模板）
 
 ## 固定輸出規格
-- 正式分析報告必須使用繁體中文。
-- 正式分析報告必須輸出到 `analysis_output/<project_name>/` 目錄。
-- 正式分析報告必須為 `.md` 檔案。
-- 預設檔名格式建議為 `analysis_output/<project_name>/<project_name>__<target_name>__analysis.md`。
+- 正式報告必須用繁體中文。
+- 正式報告必須輸出到 `analysis_output/<project_name>/`。
+- 正式報告必須是 `.md`。
+- 若未特別指定，預設套用第十人原則審查。
 
-## 推薦欄位說明
-
-| 欄位 | 必填 | 說明 |
-|------|------|------|
-| `project_name` | 是 | 專案名稱或根目錄名稱 |
-| `project_path` | 否 | 專案不在預設位置時提供完整路徑 |
-| `target_name` | 視情況 | 類別名、檔名、方法名、功能名、流程名 |
-| `target_type` | 否 | `class` / `file` / `method` / `feature` / `flow` |
-| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` / `實作細節` / `變數分析` / `方法分析` / `物件結構` / `完整流程` / `反證審查` / `精確度檢查` |
-| `scope_hint` | 否 | 模組、API 路徑、資料表、topic、workflow key、request header、response header 等線索 |
+## 共用欄位
+| 欄位 | 說明 |
+|------|------|
+| `project_name` | 專案名稱 |
+| `project_path` | 專案實際路徑；不在預設位置時提供 |
+| `target_name` | 類別名、方法名、功能名或流程問題 |
+| `target_type` | `class` / `file` / `method` / `feature` / `flow` |
+| `analysis_focus` | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` / `實作細節` / `變數分析` / `方法分析` / `物件結構` / `完整流程` / `反證審查` / `精確度檢查` |
+| `scope_hint` | 模組、API、topic、table、workflow key、DTO、錯誤碼等線索 |
+| `output_requirements` | 建議固定：`繁體中文, analysis_output/<project_name>/, md` |
 
 ## 第十人原則
-- 每份正式報告預設都必須經過第十人原則審查。
-- 若你特別在意正確率，可在 `analysis_focus` 加上 `反證審查, 精確度檢查`。
-- 若你希望報告更嚴格，可以在 `scope_hint` 加註「請套用第十人原則，嚴格挑戰所有核心結論」。
+若要提高精確度，請在 `analysis_focus` 補：`反證審查, 精確度檢查`。
 
-## Template 1: 單一程式完整分析
-
+## Templates
+### Template 1：已知 class / service
 ```text
-project_name: project-a
-target_name: OrderService.java
-target_type: file
-analysis_focus: 用途, 上下游, 交易細節, 依賴影響, 路由鏈, 資料契約, 異常流
-scope_hint: order-service module
+project_name: [專案名稱]
+target_name: [類別名，例如 G0126RIM01Service]
+target_type: class
+analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常流
+scope_hint: 請說明這支 service 的用途、誰呼叫它、它呼叫誰、交易資料怎麼流動
+output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
 
-## Template 2: 單一類別簡化分析
-
+### Template 2：已知 method
 ```text
-project_name: project-a
-target_name: OrderService
-```
-
-## Template 3: 指定方法分析
-
-```text
-project_name: project-a
-target_name: OrderService.createOrder
+project_name: [專案名稱]
+target_name: [方法名，例如 receive]
 target_type: method
 analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常流
-scope_hint: API create order
+scope_hint: 請聚焦此 method 的實際入口、分流條件、下游呼叫與錯誤處理
+output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
 
-## Template 3-0: 高精確度審查版
-
+### Template 3：單一程式深度解剖
 ```text
-project_name: project-a
-target_name: OrderService.java
-target_type: file
-analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常流, 反證審查, 精確度檢查
-scope_hint: 請套用第十人原則，嚴格挑戰所有核心結論，降低任何過度自信的敘述
-```
-
-## Template 3-1: 單一程式深度實作分析
-
-```text
-project_name: project-a
-target_name: OrderService.java
-target_type: file
-analysis_focus: 實作細節, 變數分析, 方法分析, 物件結構, 完整流程
-scope_hint: 我不想看原始碼，請完整拆解每個成員變數、每個方法、關鍵局部變數與物件結構
-```
-
-## Template 3-2: 單一類別完整解剖
-
-```text
-project_name: project-a
-target_name: OrderService
+project_name: [專案名稱]
+target_name: [類別名或檔名]
 target_type: class
-analysis_focus: 用途, 上下游, 實作細節, 變數分析, 方法分析, 物件結構, 完整流程, 異常流
-scope_hint: 需要讓我不看程式也能理解該類別的所有內容與細節
+analysis_focus: 實作細節, 變數分析, 方法分析, 物件結構, 完整流程, 反證審查, 精確度檢查
+scope_hint: 我不想看原始碼，請完整拆解每個成員變數、每個方法、關鍵局部變數、物件結構與完整流程
+output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
 
-## Template 4: 功能流程分析
-
+### Template 4：功能流程分析
 ```text
-project_name: project-a
-target_name: 建立訂單流程
+project_name: [專案名稱]
+target_name: [功能名，例如 開戶流程]
 target_type: flow
 analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常流
-scope_hint: create order, order submit, payment, inventory
+scope_hint: 請分析整體流程涉及哪些核心服務、資料流、交易節點與錯誤處理
+output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
 
-## Template 4-1: 從系統功能反查相關程式
-
+### Template 5：功能反查
 ```text
-project_name: project-a
-target_name: log 集中化如何運作
+project_name: [專案名稱]
+target_name: [功能問題，例如 log 集中化如何運作]
 target_type: feature
 analysis_focus: 用途, 上下游, 交易細節, 依賴影響, 路由鏈, 資料契約, 異常流
-scope_hint: logback, appender, fluentd, elk, opensearch, tracing, logging config
+scope_hint: [關鍵字，例如 logback, appender, fluentd, elk, tracing]
+output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
 
-## Template 4-2: 從系統能力反查並找出多支核心程式
-
+### Template 6：API 反查內部實作
 ```text
-project_name: project-a
-target_name: 權限驗證如何運作
-target_type: feature
-analysis_focus: 用途, 上下游, 依賴影響, 路由鏈, 資料契約, 異常流
-scope_hint: auth filter, interceptor, token, jwt, permission, role, security config
-```
-
-## Template 5: 專案結構導覽
-
-```text
-project_name: project-a
-analysis_focus: 用途
-scope_hint: 專案結構, 模組架構, 入口模組
-```
-
-## Template 6: 明確指定專案路徑
-
-```text
-project_name: legacy-order-system
-project_path: /absolute/path/to/legacy-order-system
-target_name: RefundService
-target_type: class
-analysis_focus: 用途, 上下游, 交易細節, 依賴影響, 路由鏈, 資料契約, 異常流
-```
-
-## Template 7: 比較兩個專案的同一功能
-
-```text
-project_name: project-a, project-b
-target_name: create order
-target_type: feature
-analysis_focus: 跨專案比較, 用途, 上下游, 交易細節, 依賴影響, 路由鏈, 資料契約, 異常流
-scope_hint: API submit order, payment, inventory, order persistence
-```
-
-## Template 8: 從 API 路徑反查
-
-```text
-project_name: project-a
-target_name: /api/orders/create
+project_name: [專案名稱]
+target_name: [API path 或 API 名稱]
 target_type: feature
 analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常流
-scope_hint: controller endpoint, create order API
+scope_hint: [例如 /api/order/create, controller, request dto, response dto]
+output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
 
-## Template 9: 從 MQ / Event 反查
-
+### Template 7：MQ / 事件反查
 ```text
-project_name: project-a
-target_name: order-created
+project_name: [專案名稱]
+target_name: [topic / event 名稱]
 target_type: feature
-analysis_focus: 上下游, 交易細節, 依賴影響, 路由鏈, 資料契約, 異常流
-scope_hint: kafka topic, producer, consumer, payment, notification
+analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常流
+scope_hint: [producer, consumer, payload, listener, retry, dead letter]
+output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
 
-## Template 10: 從資料表或 Mapper 反查
-
+### Template 8：資料表 / SP 反查
 ```text
-project_name: project-a
-target_name: order_main
+project_name: [專案名稱]
+target_name: [table / stored procedure 名稱]
 target_type: feature
-analysis_focus: 上下游, 交易細節, 依賴影響
-scope_hint: table, mapper, repository, insert, update, stored procedure
+analysis_focus: 用途, 上下游, 交易細節, 依賴影響, 資料契約
+scope_hint: [dao, repository, mapper xml, query method, service]
+output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
 
-## Template 11: 專案剛導入時的 onboarding 請求
-
+### Template 9：跨專案比較
 ```text
-project_name: project-a
-analysis_focus: 用途
-scope_hint: 先幫我盤點模組、主要入口、核心 service、外部整合點
+project_name: [專案A, 專案B]
+target_name: [共同功能或共同 service 名稱]
+target_type: feature
+analysis_focus: 跨專案比較, 用途, 上下游, 交易細節, 依賴影響
+scope_hint: 請比較責任切分、上下游差異、資料契約差異、風險差異
+output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
 
-## Template 12: 模糊查詢縮小範圍
-
+### Template 10：高精確度審查
 ```text
-project_name: project-a
-target_name: UserService
+project_name: [專案名稱]
+target_name: [類別名 / 功能名]
 target_type: class
-analysis_focus: 用途, 上下游
-scope_hint: login, auth, token, member
+analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常流, 反證審查, 精確度檢查
+scope_hint: 請套用第十人原則，主動挑戰所有核心結論，降低任何過度自信敘述
+output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
-
-## Template 13: 路由型/邊界型服務深度版
-適合像 `G0126RIM01Service` 這種經過 dispatcher、吃 header、回固定 response 契約的服務。
-
-```text
-project_name: project-a
-target_name: SomeGrpcOrRoutingService
-target_type: class
-analysis_focus: 用途, 上下游, 交易細節, 依賴影響, 路由鏈, 資料契約, 異常流
-scope_hint: dispatcher, txCode, dscpt, request header, response header, error handling, SQL, stored procedure
-```
-
-## 建議使用習慣
-- 若已知類別名，優先提供 `target_type: class` 或 `target_type: file`。
-- 若要查完整交易流，`analysis_focus` 建議至少包含 `上下游, 交易細節`。
-- 若目標是 gRPC、batch、MQ、workflow 或內部分流服務，建議再加 `路由鏈, 資料契約, 異常流`。
-- 若你想知道單一程式的完整實作，請加入 `實作細節, 變數分析, 方法分析, 物件結構, 完整流程`。
-- 若你知道的是「系統功能」而不是程式名，請直接把功能句子放在 `target_name`，例如 `log 集中化如何運作`。
-- 若只知道 API、topic、table、workflow key，也可以當成 `target_name` 或放進 `scope_hint`。
-- 若要比較兩個專案，請在 `project_name` 一次列出多個專案。
-- 若你希望直接產生正式報告檔，可在需求中明寫「請輸出到 `analysis_output/<project_name>/*.md`」，但目前規格已預設如此。
 
 ## 最短可用格式
-
 ```text
-project_name: project-a
-target_name: OrderService
+project_name: [專案名稱]
+target_name: [目標名稱]
 ```
 
-## 建議輸入格式
-
+## 推薦格式
 ```text
-project_name: project-a
-project_path: /absolute/path/to/project-a
-target_name: OrderService.createOrder
-target_type: method
-analysis_focus: 用途, 上下游, 交易細節, 依賴影響, 路由鏈, 資料契約, 異常流
-scope_hint: create order API, payment, inventory, order_main table, order-created topic
-output_requirements: 繁體中文, analysis_output/<project_name>/ 目錄, md 格式
+project_name: [專案名稱]
+project_path: [選填]
+target_name: [目標名稱]
+target_type: [class / file / method / feature / flow]
+analysis_focus: [逗號分隔]
+scope_hint: [選填]
+output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
+
+## 使用建議
+- 已知程式名：`target_type` 用 `class`、`file` 或 `method`。
+- 已知功能、不知道程式：`target_type` 用 `feature`。
+- 想完整拆解單一程式：`analysis_focus` 加 `實作細節, 變數分析, 方法分析, 物件結構, 完整流程`。
+- 想提高精確度：`analysis_focus` 再加 `反證審查, 精確度檢查`。
