@@ -26,8 +26,13 @@
 | `project_path` | 否 | 專案不在預設位置時提供完整路徑 |
 | `target_name` | 視情況 | 類別名、檔名、方法名、功能名、流程名 |
 | `target_type` | 否 | `class` / `file` / `method` / `feature` / `flow` |
-| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` / `實作細節` / `變數分析` / `方法分析` / `物件結構` / `完整流程` |
+| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` / `實作細節` / `變數分析` / `方法分析` / `物件結構` / `完整流程` / `反證審查` / `精確度檢查` |
 | `scope_hint` | 否 | 模組、API 路徑、資料表、topic、workflow key、request header、response header 等線索 |
+
+## 第十人原則
+- 每份正式報告預設都必須經過第十人原則審查。
+- 若你特別在意正確率，可在 `analysis_focus` 加上 `反證審查, 精確度檢查`。
+- 若你希望報告更嚴格，可以在 `scope_hint` 加註「請套用第十人原則，嚴格挑戰所有核心結論」。
 
 ## Template 1: 單一程式完整分析
 
@@ -54,6 +59,16 @@ target_name: OrderService.createOrder
 target_type: method
 analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常流
 scope_hint: API create order
+```
+
+## Template 3-0: 高精確度審查版
+
+```text
+project_name: project-a
+target_name: OrderService.java
+target_type: file
+analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常流, 反證審查, 精確度檢查
+scope_hint: 請套用第十人原則，嚴格挑戰所有核心結論，降低任何過度自信的敘述
 ```
 
 ## Template 3-1: 單一程式深度實作分析

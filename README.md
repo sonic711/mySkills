@@ -22,6 +22,7 @@
 | `roleIdentity_synthesizer.md` | 角色綜合判斷，整理角色定位、風險、驗證重點 |
 | `feature_capability_mapper.md` | 功能反查，支援從系統功能描述反查多支相關程式 |
 | `implementation_deep_dive.md` | 深度實作解剖，支援單一程式的變數、方法、物件結構與完整流程分析 |
+| `tenth_man_auditor.md` | 第十人原則審查，負責反證、挑錯、降級與精確度檢查 |
 | `sample_request_templates.md` | 可直接複製貼上的請求模板 |
 
 ## 支援的分析模式
@@ -113,6 +114,21 @@ analysis_output/<project_name>/<project_name>__<target_name>__analysis.md
 - SQL / XML / Mapper id
 - Table / View / Stored Procedure 名稱
 
+## 第十人原則與精確度要求
+
+每份正式報告在輸出前，都必須經過一輪「第十人原則」審查：
+
+- 主動假設前面分析可能有錯
+- 嘗試提出反例、替代解釋與合理懷疑
+- 檢查名稱、條件、SQL、route key、欄位、常數是否精確
+- 將過度自信但證據不足的敘述，從 `Confirmed` 降級為 `Inferred` 或 `Unknown`
+- 保留反證與保留意見，不可只留下順暢但過度武斷的版本
+
+如果你特別在意精確度，可以在提問時明確要求：
+
+- `反證審查`
+- `精確度檢查`
+
 ## 建議發問方式
 
 ### 已知程式
@@ -123,6 +139,17 @@ target_name: OrderService.java
 target_type: file
 analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常流
 scope_hint: order-service module
+output_requirements: 繁體中文, analysis_output/<project_name>/ 目錄, md 格式
+```
+
+### 已知程式，要求高精確度與反證審查
+
+```text
+project_name: project-a
+target_name: OrderService.java
+target_type: file
+analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常流, 反證審查, 精確度檢查
+scope_hint: 請套用第十人原則，嚴格挑戰所有核心結論，降低任何過度自信的敘述
 output_requirements: 繁體中文, analysis_output/<project_name>/ 目錄, md 格式
 ```
 

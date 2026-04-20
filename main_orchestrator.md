@@ -5,6 +5,7 @@
 
 - `feature_capability_mapper.md`
 - `implementation_deep_dive.md`
+- `tenth_man_auditor.md`
 - `project_navigator.md`
 - `dependency_mapper.md`
 - `inter_service_communication.md`
@@ -14,11 +15,18 @@
 
 `用途 -> 路由鏈 -> 上游來源 -> 下游去向 -> 資料契約 -> 正常流 -> 異常流 -> 影響與風險`
 
+正式報告在輸出前，還必須再通過：
+
+`第十人原則反證審查 -> 精確度檢查 -> 信心等級調整`
+
 ## 補強原則
 根據先前報告的落差，未來所有分析必須遵守以下原則：
 
 - 標準化格式不能犧牲證據密度。
 - 重要結論優先附「檔案 + method + line」。
+- 每份正式報告都必須先經過第十人原則審查，再允許輸出。
+- 若存在合理反證或替代解釋，必須明示，不可假裝只有單一路徑。
+- 精確度優先於完整敘事；若無法精確，就應降級結論信心。
 - 若目標屬於 gRPC、batch、MQ、workflow 或內部分流型服務，必須補出完整路由鏈。
 - 若使用者要求交易細節，必須補出資料契約與異常流，不能只寫正常流。
 - 若明確沒看到 HTTP、MQ、Cache、第三方 API 等下游，必須寫出「未發現」，避免讀者自行腦補。
@@ -43,7 +51,7 @@
 ## 分析模式限制
 當任務目的是「解析程式」或「解析系統功能」時，必須進入唯讀分析模式，遵守以下硬性規則：
 
-- 不可修改任何 skill 文件，包含 `main_orchestrator.md`、`feature_capability_mapper.md`、`implementation_deep_dive.md`、`project_navigator.md`、`dependency_mapper.md`、`inter_service_communication.md`、`roleIdentity_synthesizer.md`、`sample_request_templates.md` 與其他 `.md` 規格文件。
+- 不可修改任何 skill 文件，包含 `main_orchestrator.md`、`feature_capability_mapper.md`、`implementation_deep_dive.md`、`tenth_man_auditor.md`、`project_navigator.md`、`dependency_mapper.md`、`inter_service_communication.md`、`roleIdentity_synthesizer.md`、`sample_request_templates.md` 與其他 `.md` 規格文件。
 - 不可修改任何專案程式、設定檔、SQL、XML、YAML、建置檔或測試檔。
 - 不可因分析任務而重構、修 bug、補註解、調整命名或改動資料夾結構。
 - 分析任務唯一允許的輸出，是在 `analysis_output/<project_name>/` 目錄下新增或更新正式報告 `.md` 檔。
@@ -62,6 +70,7 @@
   main_orchestrator.md
   feature_capability_mapper.md
   implementation_deep_dive.md
+  tenth_man_auditor.md
   project_navigator.md
   dependency_mapper.md
   inter_service_communication.md
@@ -79,7 +88,7 @@
 | `project_path` | 否 | 若專案不在預設位置，需提供實際路徑 |
 | `target_name` | 是 | 程式名、類別名、方法名、功能名或流程名 |
 | `target_type` | 否 | `class` / `file` / `method` / `feature` / `flow` |
-| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` / `實作細節` / `變數分析` / `方法分析` / `物件結構` / `完整流程` |
+| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` / `實作細節` / `變數分析` / `方法分析` / `物件結構` / `完整流程` / `反證審查` / `精確度檢查` |
 | `scope_hint` | 否 | 指定模組、服務、環境、API 路徑、資料表、topic、workflow key 等線索 |
 
 若使用者只說「分析某程式的用途與上下游交易細節」，預設：
@@ -90,12 +99,12 @@
 
 | 任務類型 | 觸發條件 | 必經技能鏈 | 主要產出 |
 |----------|----------|------------|----------|
-| 專案結構導覽 | 專案結構、模組架構、檔案導航 | `project_navigator.md` | 模組樹、層級定位、入口模組 |
-| 單一程式/類別分析 | 類別名、檔名、方法名 | `project_navigator.md` -> `dependency_mapper.md` -> `inter_service_communication.md` -> `roleIdentity_synthesizer.md` | 用途、路由鏈、上下游、契約、異常流、修改風險 |
-| 單一程式深度實作分析 | 已知某支程式，但想知道每個變數、方法、物件結構與完整實作流程 | `project_navigator.md` -> `implementation_deep_dive.md` -> `dependency_mapper.md` -> `inter_service_communication.md` -> `roleIdentity_synthesizer.md` | 成員變數、方法、物件結構、完整流程、細節解剖 |
-| 功能/流程分析 | 下單流程、支付流程、某功能鏈路 | `feature_capability_mapper.md` -> `project_navigator.md` -> `inter_service_communication.md` -> `dependency_mapper.md` -> `roleIdentity_synthesizer.md` | 入口到落庫/出站的完整鏈路 |
-| 功能反查/能力分析 | 已知功能，不知道對應哪些程式，例如 log 集中化、審計、配置中心、通知 | `feature_capability_mapper.md` -> `project_navigator.md` -> `dependency_mapper.md` -> `inter_service_communication.md` -> `roleIdentity_synthesizer.md` | 功能定義、相關程式群、核心鏈路、設定與風險 |
-| 跨專案比較 | 同一功能在多個專案的差異 | 每個專案先跑完整鏈，再交叉比對 | 差異表、風險點、契約差異 |
+| 專案結構導覽 | 專案結構、模組架構、檔案導航 | `project_navigator.md` -> `tenth_man_auditor.md` | 模組樹、層級定位、入口模組 |
+| 單一程式/類別分析 | 類別名、檔名、方法名 | `project_navigator.md` -> `dependency_mapper.md` -> `inter_service_communication.md` -> `roleIdentity_synthesizer.md` -> `tenth_man_auditor.md` | 用途、路由鏈、上下游、契約、異常流、修改風險 |
+| 單一程式深度實作分析 | 已知某支程式，但想知道每個變數、方法、物件結構與完整實作流程 | `project_navigator.md` -> `implementation_deep_dive.md` -> `dependency_mapper.md` -> `inter_service_communication.md` -> `roleIdentity_synthesizer.md` -> `tenth_man_auditor.md` | 成員變數、方法、物件結構、完整流程、細節解剖 |
+| 功能/流程分析 | 下單流程、支付流程、某功能鏈路 | `feature_capability_mapper.md` -> `project_navigator.md` -> `inter_service_communication.md` -> `dependency_mapper.md` -> `roleIdentity_synthesizer.md` -> `tenth_man_auditor.md` | 入口到落庫/出站的完整鏈路 |
+| 功能反查/能力分析 | 已知功能，不知道對應哪些程式，例如 log 集中化、審計、配置中心、通知 | `feature_capability_mapper.md` -> `project_navigator.md` -> `dependency_mapper.md` -> `inter_service_communication.md` -> `roleIdentity_synthesizer.md` -> `tenth_man_auditor.md` | 功能定義、相關程式群、核心鏈路、設定與風險 |
+| 跨專案比較 | 同一功能在多個專案的差異 | 每個專案先跑完整鏈，再交叉比對，最後 `tenth_man_auditor.md` 統一審查 | 差異表、風險點、契約差異 |
 | 模糊查詢 | 名稱過泛、候選過多 | 先 `project_navigator.md` 縮小範圍，再決定後續技能 | 候選清單與建議精煉方向 |
 
 ## 標準執行流程
@@ -174,7 +183,16 @@
 - 修改時最可能波及哪些 API、模組、資料表、事件或回應契約？
 - 若它故障，最先受影響的是哪個上游與哪個下游？
 
-### 7. 報告輸出
+### 7. 第十人原則審查
+在輸出正式報告前，必須透過 `tenth_man_auditor.md` 完成以下檢查：
+
+- 至少主動挑戰 3 個核心結論
+- 至少檢查 3 類精確度風險，例如名稱、條件、SQL、欄位、route key
+- 將過度自信的敘述降級為 `Inferred` 或 `Unknown`
+- 若存在合理替代解釋，必須補進正式報告
+- 若聲明 `未發現`，必須檢查是否真的有明確搜尋範圍
+
+### 8. 報告輸出
 輸出報告必須遵守以下硬性規範：
 
 - 報告全文必須使用繁體中文撰寫。
@@ -243,6 +261,20 @@ analysis_output/<project_name>/<project_name>__<target_name>__analysis.md
 - `object_structures`
 - `implementation_flow`
 - `related_components`
+
+### `tenth_man_auditor.md`
+負責回答：
+- 目前報告中哪些結論可能錯？
+- 哪些敘述雖然合理，但證據還不夠？
+- 哪些欄位、條件、路由、SQL、常數可能被誤寫或誤讀？
+- 哪些 `Confirmed` 應降級？
+
+至少帶回：
+- `contrarian_findings`
+- `precision_issues`
+- `downgrade_recommendations`
+- `required_followups`
+- `confidence_adjustments`
 
 ### `dependency_mapper.md`
 負責回答：
@@ -368,6 +400,12 @@ analysis_output/<project_name>/<project_name>__<target_name>__analysis.md
 - [Confirmed] 檔案/方法/line：
 - [Inferred] 推定原因：
 - [Unknown] 尚未取得的資訊：
+
+## 12. 第十人原則審查
+- 主要反證點：
+- 可能的替代解釋：
+- 已降級的結論：
+- 精確度保留事項：
 ```
 
 若本次為功能反查型任務，報告中至少還要補一段：
@@ -427,6 +465,8 @@ analysis_output/<project_name>/<project_name>__<target_name>__analysis.md
 
 若聲明「未發現某類下游」，必須基於明確搜尋範圍，而不是只因為沒在目標 class 看到。
 
+若第十人原則審查指出有合理反證，正式報告必須保留該反證，不可刪除。
+
 ## 失敗與降級策略
 - 找不到專案：回覆需要專案名稱或路徑。
 - 找不到目標：列出最相近候選，不硬猜。
@@ -442,6 +482,8 @@ analysis_output/<project_name>/<project_name>__<target_name>__analysis.md
 - [ ] 是否附上足夠精確的檔案/方法/line 證據？
 - [ ] 若涉及 DB，是否補到 Service -> DAO -> SQL -> Table/SP 鏈？
 - [ ] 是否區分 Confirmed / Inferred / Unknown？
+- [ ] 是否完成第十人原則審查？
+- [ ] 是否至少保留 3 個被質疑過的核心結論或精確度風險？
 - [ ] 是否指出修改風險與影響半徑？
 - [ ] 是否以繁體中文撰寫正式報告？
 - [ ] 是否輸出到 `analysis_output/<project_name>/*.md`？
