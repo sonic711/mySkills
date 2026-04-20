@@ -26,7 +26,7 @@
 | `project_path` | 否 | 專案不在預設位置時提供完整路徑 |
 | `target_name` | 視情況 | 類別名、檔名、方法名、功能名、流程名 |
 | `target_type` | 否 | `class` / `file` / `method` / `feature` / `flow` |
-| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` |
+| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` / `實作細節` / `變數分析` / `方法分析` / `物件結構` / `完整流程` |
 | `scope_hint` | 否 | 模組、API 路徑、資料表、topic、workflow key、request header、response header 等線索 |
 
 ## Template 1: 單一程式完整分析
@@ -54,6 +54,26 @@ target_name: OrderService.createOrder
 target_type: method
 analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常流
 scope_hint: API create order
+```
+
+## Template 3-1: 單一程式深度實作分析
+
+```text
+project_name: project-a
+target_name: OrderService.java
+target_type: file
+analysis_focus: 實作細節, 變數分析, 方法分析, 物件結構, 完整流程
+scope_hint: 我不想看原始碼，請完整拆解每個成員變數、每個方法、關鍵局部變數與物件結構
+```
+
+## Template 3-2: 單一類別完整解剖
+
+```text
+project_name: project-a
+target_name: OrderService
+target_type: class
+analysis_focus: 用途, 上下游, 實作細節, 變數分析, 方法分析, 物件結構, 完整流程, 異常流
+scope_hint: 需要讓我不看程式也能理解該類別的所有內容與細節
 ```
 
 ## Template 4: 功能流程分析
@@ -177,6 +197,7 @@ scope_hint: dispatcher, txCode, dscpt, request header, response header, error ha
 - 若已知類別名，優先提供 `target_type: class` 或 `target_type: file`。
 - 若要查完整交易流，`analysis_focus` 建議至少包含 `上下游, 交易細節`。
 - 若目標是 gRPC、batch、MQ、workflow 或內部分流服務，建議再加 `路由鏈, 資料契約, 異常流`。
+- 若你想知道單一程式的完整實作，請加入 `實作細節, 變數分析, 方法分析, 物件結構, 完整流程`。
 - 若你知道的是「系統功能」而不是程式名，請直接把功能句子放在 `target_name`，例如 `log 集中化如何運作`。
 - 若只知道 API、topic、table、workflow key，也可以當成 `target_name` 或放進 `scope_hint`。
 - 若要比較兩個專案，請在 `project_name` 一次列出多個專案。

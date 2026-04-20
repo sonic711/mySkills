@@ -4,6 +4,7 @@
 你是整套分析流程的唯一入口，負責接收使用者指定的專案、程式、方法、功能或流程名稱，再決定如何串接下列技能：
 
 - `feature_capability_mapper.md`
+- `implementation_deep_dive.md`
 - `project_navigator.md`
 - `dependency_mapper.md`
 - `inter_service_communication.md`
@@ -42,7 +43,7 @@
 ## 分析模式限制
 當任務目的是「解析程式」或「解析系統功能」時，必須進入唯讀分析模式，遵守以下硬性規則：
 
-- 不可修改任何 skill 文件，包含 `main_orchestrator.md`、`feature_capability_mapper.md`、`project_navigator.md`、`dependency_mapper.md`、`inter_service_communication.md`、`roleIdentity_synthesizer.md`、`sample_request_templates.md` 與其他 `.md` 規格文件。
+- 不可修改任何 skill 文件，包含 `main_orchestrator.md`、`feature_capability_mapper.md`、`implementation_deep_dive.md`、`project_navigator.md`、`dependency_mapper.md`、`inter_service_communication.md`、`roleIdentity_synthesizer.md`、`sample_request_templates.md` 與其他 `.md` 規格文件。
 - 不可修改任何專案程式、設定檔、SQL、XML、YAML、建置檔或測試檔。
 - 不可因分析任務而重構、修 bug、補註解、調整命名或改動資料夾結構。
 - 分析任務唯一允許的輸出，是在 `analysis_output/<project_name>/` 目錄下新增或更新正式報告 `.md` 檔。
@@ -60,6 +61,7 @@
   /analysis_output
   main_orchestrator.md
   feature_capability_mapper.md
+  implementation_deep_dive.md
   project_navigator.md
   dependency_mapper.md
   inter_service_communication.md
@@ -77,7 +79,7 @@
 | `project_path` | 否 | 若專案不在預設位置，需提供實際路徑 |
 | `target_name` | 是 | 程式名、類別名、方法名、功能名或流程名 |
 | `target_type` | 否 | `class` / `file` / `method` / `feature` / `flow` |
-| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` |
+| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` / `實作細節` / `變數分析` / `方法分析` / `物件結構` / `完整流程` |
 | `scope_hint` | 否 | 指定模組、服務、環境、API 路徑、資料表、topic、workflow key 等線索 |
 
 若使用者只說「分析某程式的用途與上下游交易細節」，預設：
@@ -90,6 +92,7 @@
 |----------|----------|------------|----------|
 | 專案結構導覽 | 專案結構、模組架構、檔案導航 | `project_navigator.md` | 模組樹、層級定位、入口模組 |
 | 單一程式/類別分析 | 類別名、檔名、方法名 | `project_navigator.md` -> `dependency_mapper.md` -> `inter_service_communication.md` -> `roleIdentity_synthesizer.md` | 用途、路由鏈、上下游、契約、異常流、修改風險 |
+| 單一程式深度實作分析 | 已知某支程式，但想知道每個變數、方法、物件結構與完整實作流程 | `project_navigator.md` -> `implementation_deep_dive.md` -> `dependency_mapper.md` -> `inter_service_communication.md` -> `roleIdentity_synthesizer.md` | 成員變數、方法、物件結構、完整流程、細節解剖 |
 | 功能/流程分析 | 下單流程、支付流程、某功能鏈路 | `feature_capability_mapper.md` -> `project_navigator.md` -> `inter_service_communication.md` -> `dependency_mapper.md` -> `roleIdentity_synthesizer.md` | 入口到落庫/出站的完整鏈路 |
 | 功能反查/能力分析 | 已知功能，不知道對應哪些程式，例如 log 集中化、審計、配置中心、通知 | `feature_capability_mapper.md` -> `project_navigator.md` -> `dependency_mapper.md` -> `inter_service_communication.md` -> `roleIdentity_synthesizer.md` | 功能定義、相關程式群、核心鏈路、設定與風險 |
 | 跨專案比較 | 同一功能在多個專案的差異 | 每個專案先跑完整鏈，再交叉比對 | 差異表、風險點、契約差異 |
@@ -116,6 +119,13 @@
 - 配置中心如何生效
 
 則必須先改由 `feature_capability_mapper.md` 做功能反查，先找出相關程式群、設定檔、基礎設施接點與核心鏈路，再把候選程式交給後續技能深入分析。
+
+若使用者提供的是「已知程式名」，且明確要求：
+- 不想自己看原始碼
+- 想知道每個變數與方法的內容
+- 想知道完整物件結構與功能流程
+
+則必須改由 `implementation_deep_dive.md` 補做深度實作解剖，而不能只輸出一般用途/上下游報告。
 
 ### 2. 路由鏈重建
 若目標不是直接暴露為 REST API，而是經由 gRPC、dispatcher、workflow、batch 或 event router 進入，必須補齊：
@@ -217,6 +227,22 @@ analysis_output/<project_name>/<project_name>__<target_name>__analysis.md
 - `feature_flow`
 - `feature_configs`
 - `feature_risks`
+
+### `implementation_deep_dive.md`
+負責回答：
+- 這支程式有哪些成員變數、每個變數做什麼？
+- 這支程式有哪些方法、每個方法的步驟與局部變數如何運作？
+- 這支程式涉及哪些物件/資料結構？
+- 不看原始碼時，如何理解它的完整功能流程？
+
+至少帶回：
+- `member_variables`
+- `method_inventory`
+- `variable_analysis`
+- `method_analysis`
+- `object_structures`
+- `implementation_flow`
+- `related_components`
 
 ### `dependency_mapper.md`
 負責回答：
@@ -351,6 +377,35 @@ analysis_output/<project_name>/<project_name>__<target_name>__analysis.md
 | 類型 | 元件 | 證據 | 說明 |
 |------|------|------|------|
 | Core / Supporting / Config / Infra | | | |
+```
+
+若本次為單一程式深度實作分析，報告中至少還要補以下段落：
+
+```markdown
+## 成員變數總表
+| 變數 | 型別 | 來源 | 用途 | 主要使用方法 |
+|------|------|------|------|--------------|
+| | | | | |
+
+## 方法總表
+| 方法 | 可見性 | 輸入 | 回傳 | 主要用途 |
+|------|--------|------|------|----------|
+| | | | | |
+
+## 方法詳細分析
+### [方法名稱]
+- 方法簽名：
+- 呼叫時機：
+- 步驟拆解：
+- 關鍵局部變數：
+- 外部呼叫：
+- 正常路徑：
+- 異常路徑：
+
+## 物件/資料結構說明
+| 物件 | 類型 | 主要欄位 | 來源 | 去向 |
+|------|------|----------|------|------|
+| | | | | |
 ```
 
 ## 輸出語言與檔案規格
