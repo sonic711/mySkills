@@ -38,6 +38,17 @@
 - 使用者未提供專案時，只能輸出「需要補充的最小資訊」與建議目錄規格。
 - 使用者未提供目標名稱時，只能先做專案級導覽，不可直接推論具體流程。
 
+## 分析模式限制
+當任務目的是「解析程式」或「解析系統功能」時，必須進入唯讀分析模式，遵守以下硬性規則：
+
+- 不可修改任何 skill 文件，包含 `main_orchestrator.md`、`project_navigator.md`、`dependency_mapper.md`、`inter_service_communication.md`、`roleIdentity_synthesizer.md`、`sample_request_templates.md` 與其他 `.md` 規格文件。
+- 不可修改任何專案程式、設定檔、SQL、XML、YAML、建置檔或測試檔。
+- 不可因分析任務而重構、修 bug、補註解、調整命名或改動資料夾結構。
+- 分析任務唯一允許的輸出，是在 `analysis_output/<project_name>/` 目錄下新增或更新正式報告 `.md` 檔。
+- 若使用者沒有明確要求修改文件或程式，就必須視為「只能讀取、只能分析、只能輸出報告」。
+
+若使用者之後明確要求修改 skill 文件或專案程式，才可切換出唯讀分析模式；否則預設維持唯讀。
+
 ## 建議目錄規格
 
 ```text
@@ -146,15 +157,16 @@
 輸出報告必須遵守以下硬性規範：
 
 - 報告全文必須使用繁體中文撰寫。
-- 落地輸出目錄固定為 `analysis_output`。
+- 落地輸出根目錄固定為 `analysis_output`。
+- 每個專案的正式報告必須放在 `analysis_output/<project_name>/` 子目錄下。
 - 檔案格式固定為 Markdown，副檔名必須是 `.md`。
 - 不可輸出成 `.txt`、`.json`、`.docx` 或其他格式取代正式報告。
-- 若同一次任務需要產出正式報告檔，預設就應寫入 `analysis_output`，而不是散落在其他資料夾。
+- 若同一次任務需要產出正式報告檔，預設就應寫入 `analysis_output/<project_name>/`，而不是散落在其他資料夾。
 
 檔名建議：
 
 ```text
-analysis_output/<project_name>__<target_name>__analysis.md
+analysis_output/<project_name>/<project_name>__<target_name>__analysis.md
 ```
 
 若 `target_name` 含特殊字元，應先轉成適合檔名的安全字串，但仍維持 `.md` 副檔名。
@@ -296,9 +308,9 @@ analysis_output/<project_name>__<target_name>__analysis.md
 
 ## 輸出語言與檔案規格
 - 正式分析報告必須使用繁體中文。
-- 正式分析報告必須輸出到 `analysis_output` 目錄。
+- 正式分析報告必須輸出到 `analysis_output/<project_name>/` 目錄。
 - 正式分析報告必須為 `.md` 檔案。
-- 若只是對話內先行展示草稿，也應以最終會落地到 `analysis_output/*.md` 的格式撰寫。
+- 若只是對話內先行展示草稿，也應以最終會落地到 `analysis_output/<project_name>/*.md` 的格式撰寫。
 
 ## 證據規則
 - `Confirmed`：可由程式碼、設定、SQL、註解、API 路徑、topic、Bean 定義直接驗證，且優先附上「檔案 + method + line」。
@@ -330,5 +342,6 @@ analysis_output/<project_name>__<target_name>__analysis.md
 - [ ] 是否區分 Confirmed / Inferred / Unknown？
 - [ ] 是否指出修改風險與影響半徑？
 - [ ] 是否以繁體中文撰寫正式報告？
-- [ ] 是否輸出到 `analysis_output/*.md`？
+- [ ] 是否輸出到 `analysis_output/<project_name>/*.md`？
+- [ ] 本次若屬於分析任務，是否未修改任何 skill 文件與專案程式？
 - [ ] 若專案尚未提供，是否只輸出準備指引而非假分析？

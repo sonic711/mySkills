@@ -14,9 +14,9 @@
 
 ## 固定輸出規格
 - 正式分析報告必須使用繁體中文。
-- 正式分析報告必須輸出到 `analysis_output` 目錄。
+- 正式分析報告必須輸出到 `analysis_output/<project_name>/` 目錄。
 - 正式分析報告必須為 `.md` 檔案。
-- 預設檔名格式建議為 `analysis_output/<project_name>__<target_name>__analysis.md`。
+- 預設檔名格式建議為 `analysis_output/<project_name>/<project_name>__<target_name>__analysis.md`。
 
 ## 推薦欄位說明
 
@@ -159,7 +159,7 @@ scope_hint: dispatcher, txCode, dscpt, request header, response header, error ha
 - 若目標是 gRPC、batch、MQ、workflow 或內部分流服務，建議再加 `路由鏈, 資料契約, 異常流`。
 - 若只知道 API、topic、table、workflow key，也可以當成 `target_name` 或放進 `scope_hint`。
 - 若要比較兩個專案，請在 `project_name` 一次列出多個專案。
-- 若你希望直接產生正式報告檔，可在需求中明寫「請輸出到 `analysis_output/*.md`」，但目前規格已預設如此。
+- 若你希望直接產生正式報告檔，可在需求中明寫「請輸出到 `analysis_output/<project_name>/*.md`」，但目前規格已預設如此。
 
 ## 最短可用格式
 
@@ -177,5 +177,5 @@ target_name: OrderService.createOrder
 target_type: method
 analysis_focus: 用途, 上下游, 交易細節, 依賴影響, 路由鏈, 資料契約, 異常流
 scope_hint: create order API, payment, inventory, order_main table, order-created topic
-output_requirements: 繁體中文, analysis_output 目錄, md 格式
+output_requirements: 繁體中文, analysis_output/<project_name>/ 目錄, md 格式
 ```
