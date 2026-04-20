@@ -1,0 +1,13 @@
+# Default: ignore everything in this repo.
+*
+
+# Keep directory traversal so Markdown files in subfolders can be tracked.
+!*/
+
+# Keep repo-level ignore rules and Markdown documents.
+!.gitignore
+!*.md
+
+# Common local noise
+.DS_Store
+.idea/
