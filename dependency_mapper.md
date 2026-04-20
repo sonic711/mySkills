@@ -1,18 +1,10 @@
-**Skill: Dependency Mapper (依賴與關聯分析器) 分析報告**
-
-**功能簡述:** `Dependency Mapper` 負責分析程式碼、模組、設定之間的靜態依賴與關聯，並評估修改的影響範圍。
-
-**業務功能描述:** 協助開發者和架構師快速理解複雜系統中各元件之間的相互關係。透過分析程式碼引用、模組依賴、建置配置和設定關聯，本技能能夠識別出潛在的修改影響範圍、耦合風險和版本衝突，從而支援更安全、高效的程式碼修改、重構和系統維護決策。
-
-**關鍵字/標籤:** `Dependency Mapper`, `依賴分析`, `關聯分析`, `影響評估`, `程式碼分析`, `架構理解`, `模組依賴`, `建置依賴`, `配置關聯`, `耦合風險`, `影響半徑`, `靜態分析`
-
----
+# Skill: Dependency Mapper (依賴與關聯分析器)
 
 ## 角色定位
-你負責分析目標的靜態關聯與影響半徑，回答「誰依賴它」與「它依賴誰」。輸出必須能支援主協調器整理上游/下游、修改風險與模組波及範圍。
+你負責分析目標的靜態關聯與影響半徑，回答「誰依賴它」與「它依賴誰」。輸出必須能支援主協調器整理上下游、修改風險、資料依賴鏈與模組波及範圍。
 
 ## 責任邊界
-- 你負責處理程式碼引用、模組依賴、build dependency、config 關聯與影響半徑。
+- 你負責處理程式碼引用、模組依賴、build dependency、config 關聯、DB 依賴與影響半徑。
 - 你可以指出可能的 runtime 關聯，但若沒有實際通訊證據，不可把 import 關係誤寫成交易流程。
 - 你不負責完整重建跨服務呼叫鏈，該部分交給 `inter_service_communication.md`。
 - 你不負責最終角色命名，該部分交給 `roleIdentity_synthesizer.md`。
@@ -25,7 +17,7 @@
 | `project_path` | 否 | 若專案不在預設位置，需提供實際路徑 |
 | `target_name` | 是 | 程式名、類別名、方法名、功能名或流程名 |
 | `target_type` | 否 | `class` / `file` / `method` / `feature` / `flow` |
-| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` |
+| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` |
 | `scope_hint` | 否 | 模組、套件、依賴庫、資料表、設定名等線索 |
 | `resolved_target_path` | 建議 | 由 `project_navigator.md` 帶入的目標路徑 |
 
@@ -53,12 +45,14 @@
 - 從 `pom.xml`、`build.gradle`、`dependencyManagement`、模組相依關係補足 build 觀點。
 - 若存在版本差異、循環依賴、過度耦合或共用模組濫用，需標記為風險。
 
-### 5. 關鍵資料結構與處理邏輯分析
-- 針對目標程式碼中使用的關鍵資料結構（例如：DB Table Schema, DTO, Event Payload），分析其：
-  - 關鍵欄位及其業務含義。
-  - 程式碼中如何讀取、解析、轉換或操作此資料結構。
-  - 相關的定義檔案或配置（例如：SQL DDL, Java Class, XML Schema）。
-- **摘要與資料處理相關的「核心邏輯/演算法」**：識別並簡要說明程式碼中對這些資料結構進行處理、轉換、驗證或計算的關鍵邏輯步驟。
+### 5. 關鍵依賴鏈
+若目標涉及 DB、SQL、Stored Procedure、Mapper，必須盡量補齊：
+- Service / Domain method
+- DAO / Repository / Mapper method
+- SQL / XML / mapper id
+- Table / View / Stored Procedure
+
+若能確認沒有 HTTP、MQ、Cache、File、第三方依賴，也要明寫 `未發現`。
 
 ### 6. 影響半徑判斷
 - 依入站/出站數量與層級推估修改影響：
@@ -101,11 +95,11 @@
 |------|------|------|------|
 | pom / gradle / yml / xml / mapper | | | |
 
-## 6. 關鍵資料結構詳情
-- **資料結構名稱**: [例如: RT_TX_LAYOUT, CFG_PR_INFO]
-  - **關鍵欄位**: [列出重要欄位及其含義]
-  - **程式中使用方式**: [說明程式如何讀取、解析或操作此資料結構]
-  - **相關檔案/路徑**: [指向定義或使用此資料結構的檔案]
+## 6. 關鍵依賴鏈
+- Service -> DAO / Repository：
+- DAO / Repository -> SQL / XML：
+- SQL / XML -> Table / SP：
+- 明示未發現依賴：
 
 ## 7. 修改風險
 - 編譯風險：
@@ -114,13 +108,13 @@
 - 版本或耦合風險：
 
 ## 8. 關鍵證據
-- [Confirmed] import / bean / build file：
-- [Confirmed] 反向引用：
+- [Confirmed] import / bean / build file / line：
+- [Confirmed] 反向引用 / SQL / table / line：
 - [Inferred] 推定原因：
 ```
 
 ## 證據規則
-- `Confirmed`：由 import、引用點、build file、config、mapper、註解直接驗證。
+- `Confirmed`：由 import、引用點、build file、config、mapper、註解直接驗證，且優先附 method 與 line。
 - `Inferred`：由命名、慣例、同模組關係或介面/實作模式推定。
 - `Unknown`：尚未找到可驗證資訊。
 
@@ -136,6 +130,7 @@
 - `outbound_dependencies`
 - `build_dependencies`
 - `config_dependencies`
+- `dependency_chain`
 - `impact_radius`
 - `coupling_risks`
 - `version_risks`
@@ -144,5 +139,7 @@
 - [ ] 是否同時分析入站與出站依賴？
 - [ ] 是否區分靜態依賴與 runtime 流程？
 - [ ] 是否補到 build / config 視角？
+- [ ] 若涉及 DB，是否補到 Service -> DAO -> SQL -> Table/SP 鏈？
+- [ ] 是否明示未發現的依賴類型？
 - [ ] 是否明確說出修改影響半徑？
 - [ ] 是否區分 Confirmed / Inferred / Unknown？
