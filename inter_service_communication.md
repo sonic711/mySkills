@@ -8,6 +8,7 @@
 - 可指出鏈路中的資料轉換與副作用，但不可把靜態 import 當成通訊證據。
 - 專案定位交給 `project_navigator.md`。
 - 最終角色命名交給 `roleIdentity_synthesizer.md`。
+- 維護導向補強採 facet 機制，依 `conditional_maintenance_facets.md` 只補符合特徵的附錄。
 
 ## 最小輸入契約
 
@@ -18,6 +19,7 @@
 | `target_name` | 是 | 程式名、類別名、方法名、功能名或流程名 |
 | `target_type` | 否 | `class` / `file` / `method` / `feature` / `flow` |
 | `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` / `流程圖` |
+| `maintenance_facets` | 否 | `batch_scheduler` / `broadcast_event` / `external_contract` / `manual_rerun` / `cache_sync` |
 | `scope_hint` | 否 | API path、topic、client 名稱、排程名稱、workflow key |
 | `resolved_target_path` | 建議 | 由 `project_navigator.md` 帶入 |
 
@@ -46,6 +48,15 @@
 
 ### 6. 風險判斷
 - 標記無 retry / fallback / timeout、無 token/header 傳遞、DTO 或 header 契約不明、同步鏈過長、事件發送後無消費證據、錯誤回應有二次失敗風險。
+
+### 7. Facet 判定
+- 依 `conditional_maintenance_facets.md` 判斷是否追加：
+  - `batch_scheduler`
+  - `broadcast_event`
+  - `external_contract`
+  - `manual_rerun`
+  - `cache_sync`
+- 只有符合特徵時才補條件附錄。
 
 ## 標準輸出模板
 ```markdown
@@ -101,13 +112,20 @@ flowchart TD
 - 可能二次失敗點：
 - 未驗證異常場景：
 
-## 9. 風險與缺口
+## 9. 條件附錄（符合 facet 時才補）
+- `batch_scheduler`：批次與排程維護
+- `broadcast_event`：廣播/事件通知矩陣
+- `external_contract`：外部契約與成功條件
+- `manual_rerun`：重跑與補救
+- `cache_sync`：快取/同步刷新驗證
+
+## 10. 風險與缺口
 - 通訊風險：
 - 契約風險：
 - 可靠性風險：
 - 尚未確認點：
 
-## 10. 關鍵證據
+## 11. 關鍵證據
 - [Confirmed] endpoint / listener / client / line：
 - [Confirmed] topic / path / DTO / line：
 - [Inferred] 推定原因：
@@ -140,6 +158,7 @@ flowchart TD
 - [ ] 若有 dispatcher / router，是否補出完整路由鏈？
 - [ ] 是否把鏈路順序寫清楚？
 - [ ] 若鏈路超過 3 個節點，是否補 Mermaid 流程圖？
+- [ ] 是否只追加符合特徵的 facet？
 - [ ] 是否區分同步與非同步？
 - [ ] 是否補到 DTO / topic / path / header 等資料契約？
 - [ ] 是否補到異常流與錯誤回應？

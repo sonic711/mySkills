@@ -9,9 +9,11 @@
 - 描述程式流程、交易流程、路由鏈或資料流時，優先補 Mermaid 流程圖。
 - 每個結論都要標示 `Confirmed`、`Inferred`、`Unknown`。
 - 正式報告輸出前，必須經過第十人原則審查。
+- 若目標是系統維護，採 facet 機制補強，只在符合特徵時追加對應附錄。
 
 ## 主要文件
 - `main_orchestrator.md`：主路由、流程、輸入輸出規格。
+- `conditional_maintenance_facets.md`：條件式維護附錄與觸發規則。
 - `project_navigator.md`：定位專案、模組、目標與入口線索。
 - `dependency_mapper.md`：分析入站、出站、build/config、DB 依賴。
 - `inter_service_communication.md`：分析上游、下游、路由鏈、資料契約、異常流。
@@ -26,6 +28,7 @@
 2. 已知程式：做深度實作解剖，不看原始碼也能理解內容。
 3. 已知功能：反查對應程式、設定、資料流，再做完整分析。
 4. 高精確度模式：在正式輸出前加做第十人原則審查。
+5. 維護模式：用 facet 補強排查、重跑、修資料與回歸驗證，但不把所有報告寫成同一型。
 
 ## 輸入最小格式
 ```text
@@ -36,6 +39,14 @@ analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 異常
 scope_hint: 其他線索
 output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
+
+## 維護 Facets
+- `batch_scheduler`：批次、排程、手動觸發、重跑風險
+- `db_write`：資料寫入矩陣、key、修復注意事項
+- `broadcast_event`：廣播/事件通知矩陣
+- `external_contract`：外部 request/response 契約與成功條件
+- `manual_rerun`：補跑、重送、人工重跑
+- `cache_sync`：快取/同步刷新驗證
 
 ## 常見提問
 ### 1. 已知程式

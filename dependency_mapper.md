@@ -8,6 +8,7 @@
 - 可指出可能的 runtime 關聯，但不可把 import 關係寫成交易流程。
 - 完整跨服務呼叫鏈交給 `inter_service_communication.md`。
 - 最終角色命名交給 `roleIdentity_synthesizer.md`。
+- 維護導向補強採 facet 機制，依 `conditional_maintenance_facets.md` 只補符合特徵的附錄。
 
 ## 最小輸入契約
 
@@ -18,6 +19,7 @@
 | `target_name` | 是 | 程式名、類別名、方法名、功能名或流程名 |
 | `target_type` | 否 | `class` / `file` / `method` / `feature` / `flow` |
 | `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` |
+| `maintenance_facets` | 否 | `db_write` / `manual_rerun` / `cache_sync` |
 | `scope_hint` | 否 | 模組、套件、依賴庫、資料表、設定名等線索 |
 | `resolved_target_path` | 建議 | 由 `project_navigator.md` 帶入 |
 
@@ -50,6 +52,13 @@
 ### 6. 影響半徑判斷
 - 依入站/出站數量與層級推估修改影響：單模組、跨模組、跨服務、共用基礎模組。
 - 風險拆成 API、行為、編譯、版本影響。
+
+### 7. Facet 判定
+- 依 `conditional_maintenance_facets.md` 判斷是否追加：
+  - `db_write`
+  - `manual_rerun`
+  - `cache_sync`
+- 只在目標真的有寫表、補跑入口、快取刷新時才補對應附錄。
 
 ## 標準輸出模板
 ```markdown
@@ -95,7 +104,12 @@
 - 模組波及：
 - 版本或耦合風險：
 
-## 8. 關鍵證據
+## 8. 條件附錄（符合 facet 時才補）
+- `db_write`：資料寫入矩陣
+- `manual_rerun`：重跑與補救
+- `cache_sync`：快取/同步刷新驗證
+
+## 9. 關鍵證據
 - [Confirmed] import / bean / build file / line：
 - [Confirmed] 反向引用 / SQL / table / line：
 - [Inferred] 推定原因：
@@ -128,6 +142,7 @@
 - [ ] 是否區分靜態依賴與 runtime 流程？
 - [ ] 是否補到 build / config 視角？
 - [ ] 若涉及 DB，是否補到 `Service -> DAO -> SQL -> Table/SP`？
+- [ ] 是否只追加符合特徵的 facet？
 - [ ] 是否明示未發現的依賴類型？
 - [ ] 是否明確說出修改影響半徑？
 - [ ] 是否區分 `Confirmed` / `Inferred` / `Unknown`？

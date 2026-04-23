@@ -8,6 +8,7 @@
 - 可補充直接關聯的外部類別、DTO、DAO、Config，但不可失焦成專案總覽。
 - 必須覆蓋該支程式的所有成員變數與所有方法；方法過長時需拆成步驟級分析。
 - 不負責修改程式，也不以重構建議取代現況說明。
+- 維護導向補強採 facet 機制，依 `conditional_maintenance_facets.md` 只補符合特徵的附錄。
 
 ## 最小輸入契約
 
@@ -18,6 +19,7 @@
 | `target_name` | 是 | 類別名、檔名或方法名 |
 | `target_type` | 建議 | `class` / `file` / `method` |
 | `analysis_focus` | 否 | `實作細節` / `變數分析` / `方法分析` / `物件結構` / `完整流程` / `流程圖` |
+| `maintenance_facets` | 否 | `batch_scheduler` / `db_write` / `broadcast_event` / `external_contract` / `manual_rerun` / `cache_sync` |
 | `scope_hint` | 否 | 模組、套件、關聯 DTO、DAO、流程名稱、輸入輸出線索 |
 | `resolved_target_path` | 建議 | 由 `project_navigator.md` 帶入 |
 
@@ -56,6 +58,16 @@
 
 ### 6. 關聯元件補充
 若高度依賴外部類別，補充直接相依元件、對此程式的影響、下一個建議追查檔案。
+
+### 7. Facet 判定
+- 依 `conditional_maintenance_facets.md` 判斷是否追加：
+  - `batch_scheduler`
+  - `db_write`
+  - `broadcast_event`
+  - `external_contract`
+  - `manual_rerun`
+  - `cache_sync`
+- 僅在目標真的具備對應特徵時，才補條件附錄。
 
 ## 標準輸出模板
 ```markdown
@@ -133,12 +145,20 @@ flowchart TD
 5. 結果輸出/副作用：
 6. 錯誤處理：
 
-## 10. 關聯元件補充
+## 10. 條件附錄（符合 facet 時才補）
+- `batch_scheduler`：批次與排程維護
+- `db_write`：資料寫入矩陣
+- `broadcast_event`：廣播/事件通知矩陣
+- `external_contract`：外部契約與成功條件
+- `manual_rerun`：重跑與補救
+- `cache_sync`：快取/同步刷新驗證
+
+## 11. 關聯元件補充
 | 元件 | 關聯方式 | 說明 |
 |------|----------|------|
 | | | |
 
-## 11. 關鍵證據
+## 12. 關鍵證據
 - [Confirmed] 檔案/方法/line：
 - [Confirmed] 變數/方法/line：
 - [Inferred] 推定原因：
@@ -170,6 +190,7 @@ flowchart TD
 - [ ] 是否對每個成員變數補用途與使用位置？
 - [ ] 是否對每個方法補步驟級分析？
 - [ ] 若流程超過 3 個步驟，是否補 Mermaid 流程圖？
+- [ ] 是否只追加符合特徵的 facet？
 - [ ] 是否補到關鍵局部變數與中間物件？
 - [ ] 是否補到完整功能流程與資料結構？
 - [ ] 是否讓讀者不看原始碼也能理解主要內容？
