@@ -18,7 +18,7 @@
 | `project_path` | 否 | 專案不在預設位置時提供 |
 | `target_name` | 是 | 程式名、類別名、方法名、功能名或流程名 |
 | `target_type` | 否 | `class` / `file` / `method` / `feature` / `flow` |
-| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` / `流程圖` |
+| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` / `流程圖` / `請求到回應` |
 | `maintenance_facets` | 否 | `batch_scheduler` / `broadcast_event` / `external_contract` / `manual_rerun` / `cache_sync` |
 | `scope_hint` | 否 | API path、topic、client 名稱、排程名稱、workflow key |
 | `resolved_target_path` | 建議 | 由 `project_navigator.md` 帶入 |
@@ -45,6 +45,7 @@
 - 正常流：入口 -> 分流 -> 核心處理 -> 回傳 / 出站。
 - 異常流：layout 不存在、查無資料、header 長度異常、錯誤回應組裝失敗、fallback 缺失等。
 - 若鏈路超過 3 個節點，補 Mermaid 流程圖表示主鏈路與主要分支。
+- 必須補一段「請求到回應完整說明」：用白話按時間順序說明收到請求、辨識路由、檢查參數、轉換資料、呼叫下游、組裝回應或送出通知，以及失敗時怎麼回應。
 
 ### 6. 風險判斷
 - 標記無 retry / fallback / timeout、無 token/header 傳遞、DTO 或 header 契約不明、同步鏈過長、事件發送後無消費證據、錯誤回應有二次失敗風險。
@@ -98,7 +99,15 @@ flowchart TD
     D --> E["回傳/副作用"]
 ```
 
-## 7. 正常鏈路
+## 7. 請求到回應完整說明
+1. 接收到的請求是什麼：
+2. 系統如何辨識入口與路由：
+3. 中間做了哪些檢查、查詢、轉換或組裝：
+4. 呼叫了哪些下游或產生哪些事件/副作用：
+5. 成功時如何回應或通知：
+6. 失敗時如何回應或補償：
+
+## 8. 正常鏈路
 1. 入口：
 2. 分流：
 3. 核心處理：
@@ -106,35 +115,35 @@ flowchart TD
 5. 出站呼叫/事件：
 6. 回傳/副作用：
 
-## 8. 異常流/錯誤處理
+## 9. 異常流/錯誤處理
 - 錯誤觸發點：
 - 錯誤回應/補償：
 - 可能二次失敗點：
 - 未驗證異常場景：
 
-## 9. 條件附錄（符合 facet 時才補）
+## 10. 條件附錄（符合 facet 時才補）
 - `batch_scheduler`：批次與排程維護
 - `broadcast_event`：廣播/事件通知矩陣
 - `external_contract`：外部契約與成功條件
 - `manual_rerun`：重跑與補救
 - `cache_sync`：快取/同步刷新驗證
 
-## 10. 風險與缺口
+## 11. 風險與缺口
 - 通訊風險：
 - 契約風險：
 - 可靠性風險：
 - 尚未確認點：
 
-## 11. 關鍵證據
-- [Confirmed] endpoint / listener / client / line：
-- [Confirmed] topic / path / DTO / line：
-- [Inferred] 推定原因：
+## 12. 未確認關鍵證據
+- [Inferred] 推定原因與目前依據：
+- [Unknown] 尚缺資訊與需補查位置：
 ```
 
 ## 證據規則
 - `Confirmed`：由 controller、listener、client、topic、path、註解、設定、程式碼呼叫直接驗證，優先附 method 與 line。
 - `Inferred`：由命名、相鄰 DTO、config 命名、鏈路殘片推定。
 - `Unknown`：尚無可驗證證據。
+- 正式報告的「未確認關鍵證據」區只列 `Inferred`、`Unknown` 或其他未完成確認的證據缺口；`Confirmed` 證據放在各主體段落中，不在最後集中重複列出。
 
 ## 降級策略
 - 找不到目標：要求 `project_navigator.md` 重新定位。
@@ -157,6 +166,7 @@ flowchart TD
 - [ ] 是否同時列出上游與下游通訊？
 - [ ] 若有 dispatcher / router，是否補出完整路由鏈？
 - [ ] 是否把鏈路順序寫清楚？
+- [ ] 是否補上從接收請求到回應/通知完成的白話完整說明？
 - [ ] 若鏈路超過 3 個節點，是否補 Mermaid 流程圖？
 - [ ] 是否只追加符合特徵的 facet？
 - [ ] 是否區分同步與非同步？

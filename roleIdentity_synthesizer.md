@@ -18,7 +18,7 @@
 | `navigator_findings` | 建議 | 由 `project_navigator.md` 帶入 |
 | `dependency_findings` | 建議 | 由 `dependency_mapper.md` 帶入 |
 | `communication_findings` | 建議 | 由 `inter_service_communication.md` 帶入 |
-| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` |
+| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `請求到回應` / `異常流` |
 
 若缺少上述 findings，必須先聲明信心有限。
 
@@ -94,16 +94,16 @@
 - 交易/資料一致性重點：
 - 建議優先回歸範圍：
 
-## 6. 關鍵證據
-- [Confirmed] 位置/依賴/通訊：
-- [Confirmed] 交易節點/契約：
-- [Inferred] 綜合推論：
+## 6. 未確認關鍵證據
+- [Inferred] 綜合推論與目前依據：
+- [Unknown] 尚缺前置輸入或需補查位置：
 ```
 
 ## 證據規則
 - `Confirmed`：來自前置技能已驗證的路徑、依賴、通訊、交易、契約證據。
 - `Inferred`：根據多個已知事實綜合推定出的角色結論。
 - `Unknown`：缺乏足夠前置輸入，無法安全判定。
+- 正式報告的「未確認關鍵證據」區只列 `Inferred`、`Unknown` 或其他未完成確認的證據缺口；`Confirmed` 證據放在各主體段落中，不在最後集中重複列出。
 
 ## 降級策略
 - 缺少前置技能：輸出 provisional 角色，並說明缺哪類資料。

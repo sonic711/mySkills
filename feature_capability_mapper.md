@@ -16,7 +16,7 @@
 | `project_path` | 否 | 專案不在預設位置時提供 |
 | `target_name` | 是 | 功能名、能力描述或流程問題 |
 | `target_type` | 建議 | `feature` |
-| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `路由鏈` / `資料契約` / `異常流` |
+| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `路由鏈` / `資料契約` / `請求到回應` / `異常流` |
 | `scope_hint` | 否 | 關鍵字、框架、topic、API path、table、設定名、技術名詞 |
 
 ## 執行流程
@@ -77,16 +77,16 @@
 2. 再補依賴：
 3. 再補通訊/交易鏈：
 
-## 7. 關鍵證據
-- [Confirmed] 類別/設定/SQL/line：
-- [Confirmed] topic / path / table / line：
-- [Inferred] 推定原因：
+## 7. 未確認關鍵證據
+- [Inferred] 推定原因與目前依據：
+- [Unknown] 尚缺資訊與需補查位置：
 ```
 
 ## 證據規則
 - `Confirmed`：由類別、方法、設定、註解、SQL、topic、table、build dependency 直接驗證。
 - `Inferred`：由名稱、位置、相鄰設定、使用情境推定。
 - `Unknown`：尚無足夠證據。
+- 正式報告的「未確認關鍵證據」區只列 `Inferred`、`Unknown` 或其他未完成確認的證據缺口；`Confirmed` 證據放在各主體段落中，不在最後集中重複列出。
 
 ## 降級策略
 - 只找到技術元件，找不到業務核心：先列候選群與缺口。

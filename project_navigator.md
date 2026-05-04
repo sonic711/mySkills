@@ -16,7 +16,7 @@
 | `project_path` | 否 | 專案不在預設位置時提供 |
 | `target_name` | 否 | 程式名、類別名、方法名、功能名或流程名 |
 | `target_type` | 否 | `class` / `file` / `method` / `feature` / `flow` |
-| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` |
+| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `請求到回應` / `異常流` |
 | `scope_hint` | 否 | 模組、套件、API、table、topic、workflow key 等線索 |
 
 ## 執行流程
@@ -81,16 +81,16 @@
 - 可能分流條件：
 - 後續建議追查方向：
 
-## 6. 關鍵證據
-- [Confirmed] 檔案/方法/line：
-- [Confirmed] 模組/路徑/設定：
-- [Inferred] 推定原因：
+## 6. 未確認關鍵證據
+- [Inferred] 推定原因與目前依據：
+- [Unknown] 尚缺資訊與需補查位置：
 ```
 
 ## 證據規則
 - `Confirmed`：由檔案、package、註解、設定、模組結構直接驗證。
 - `Inferred`：由命名、目錄、鄰近檔案推定。
 - `Unknown`：尚無足夠資訊。
+- 正式報告的「未確認關鍵證據」區只列 `Inferred`、`Unknown` 或其他未完成確認的證據缺口；`Confirmed` 證據放在各主體段落中，不在最後集中重複列出。
 
 ## 降級策略
 - 找不到專案：要求 `project_name` 或 `project_path`。

@@ -18,7 +18,7 @@
 | `project_path` | 否 | 專案不在預設位置時提供 |
 | `target_name` | 是 | 程式名、類別名、方法名、功能名或流程名 |
 | `target_type` | 否 | `class` / `file` / `method` / `feature` / `flow` |
-| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` |
+| `analysis_focus` | 否 | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `請求到回應` / `異常流` |
 | `maintenance_facets` | 否 | `db_write` / `manual_rerun` / `cache_sync` |
 | `scope_hint` | 否 | 模組、套件、依賴庫、資料表、設定名等線索 |
 | `resolved_target_path` | 建議 | 由 `project_navigator.md` 帶入 |
@@ -109,16 +109,16 @@
 - `manual_rerun`：重跑與補救
 - `cache_sync`：快取/同步刷新驗證
 
-## 9. 關鍵證據
-- [Confirmed] import / bean / build file / line：
-- [Confirmed] 反向引用 / SQL / table / line：
-- [Inferred] 推定原因：
+## 9. 未確認關鍵證據
+- [Inferred] 推定原因與目前依據：
+- [Unknown] 尚缺資訊與需補查位置：
 ```
 
 ## 證據規則
 - `Confirmed`：由 import、引用點、build file、config、mapper、註解直接驗證，優先附 method 與 line。
 - `Inferred`：由命名、慣例、同模組關係、介面/實作模式推定。
 - `Unknown`：尚無可驗證資訊。
+- 正式報告的「未確認關鍵證據」區只列 `Inferred`、`Unknown` 或其他未完成確認的證據缺口；`Confirmed` 證據放在各主體段落中，不在最後集中重複列出。
 
 ## 降級策略
 - 找不到目標：要求 `project_navigator.md` 重新定位。
