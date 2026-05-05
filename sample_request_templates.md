@@ -4,7 +4,9 @@
 - 正式報告必須用繁體中文。
 - 正式報告必須輸出到 `analysis_output/<project_name>/`。
 - 正式報告必須是 `.md`。
+- 分析前先查既有報告與 `analysis_registry/<project_name>/`；可重用時只補缺口，不重複讀完整程式。
 - 若描述程式流程、交易流程、路由鏈或資料流，應補 Mermaid 流程圖。
+- 若問題跨到不同系統、服務、外部 API、MQ、gRPC callback 或跨專案，正式報告必須補 Mermaid `sequenceDiagram` 系統架構交易時序圖。
 - 若未特別指定，預設套用第十人原則審查；審查只供分析時使用，不輸出成正式報告章節。
 - 正式報告最後的「未確認關鍵證據」只列 `Inferred`、`Unknown` 或其他未確認/待補查項；`Confirmed` 證據放在正文中。
 - 正式報告要有「請求到回應完整說明」章節，白話說明從收到請求到回應結果中間做了什麼。
@@ -17,10 +19,17 @@
 | `target_name` | 類別名、方法名、功能名或流程問題 |
 | `issue_description` | 問題現象；問題導向調查時填 |
 | `target_type` | `class` / `file` / `method` / `feature` / `flow` / `issue` |
-| `analysis_focus` | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `請求到回應` / `異常流` / `流程圖` / `實作細節` / `變數分析` / `方法分析` / `物件結構` / `完整流程` / `問題原因` / `寫入點` / `套件引用` / `邏輯分支` / `驗證方式` / `反證審查` / `精確度檢查` |
+| `analysis_focus` | `用途` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `請求到回應` / `異常流` / `流程圖` / `系統時序圖` / `實作細節` / `變數分析` / `方法分析` / `物件結構` / `完整流程` / `問題原因` / `寫入點` / `套件引用` / `邏輯分支` / `驗證方式` / `反證審查` / `精確度檢查` |
 | `maintenance_facets` | `batch_scheduler` / `db_write` / `broadcast_event` / `external_contract` / `manual_rerun` / `cache_sync` |
 | `scope_hint` | 模組、API、topic、table、workflow key、DTO、錯誤碼等線索 |
 | `output_requirements` | 建議固定：`繁體中文, analysis_output/<project_name>/, md` |
+
+## 報告重用原則
+- 先查 `analysis_registry/<project_name>/program_index.md` 與 `shared_components.md`。
+- 若已有完整報告，採 `Reuse`。
+- 若舊報告缺少新規格章節，採 `Patch`。
+- 若命中共用元件，採 `Reference Only`。
+- 若沒有可用報告，採 `Analyze Fresh`。
 
 ## Facet 原則
 - `analysis_focus` 決定你想看什麼。
@@ -38,6 +47,26 @@ target_name: [類別名，例如 G0126RIM01Service]
 target_type: class
 analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 請求到回應, 異常流, 流程圖
 scope_hint: 請說明這支 service 的用途、誰呼叫它、它呼叫誰、交易資料怎麼流動
+output_requirements: 繁體中文, analysis_output/<project_name>/, md
+```
+
+### Template 1B：跨系統交易時序圖
+```text
+project_name: [專案名稱]
+target_name: [交易 / flow / service 名稱]
+target_type: flow
+analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 請求到回應, 異常流, 流程圖, 系統時序圖
+scope_hint: 此流程會跨系統，請輸出系統架構交易時序圖，標出呼叫端、目前服務、DB/MQ、下游系統與 callback 順序
+output_requirements: 繁體中文, analysis_output/<project_name>/, md
+```
+
+### Template 1A：先查既有報告再分析
+```text
+project_name: [專案名稱]
+target_name: [類別名 / 功能名]
+target_type: class
+analysis_focus: 用途, 上下游, 請求到回應, 異常流
+scope_hint: 請先查 analysis_registry 與既有報告；若已有完整報告就重用，若缺章節只補缺口
 output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
 
@@ -172,6 +201,7 @@ output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
 
 ## 使用建議
+- 想減少重複讀程式：要求先查 `analysis_registry` 與既有報告。
 - 已知程式名：`target_type` 用 `class`、`file` 或 `method`。
 - 已知功能、不知道程式：`target_type` 用 `feature`。
 - 已知異常現象、不知道原因：`target_type` 用 `issue`，並填 `issue_description`。
@@ -179,5 +209,7 @@ output_requirements: 繁體中文, analysis_output/<project_name>/, md
 - 想完整拆解單一程式：`analysis_focus` 加 `實作細節, 變數分析, 方法分析, 物件結構, 完整流程, 請求到回應`。
 - 想讓不懂系統的人快速理解：`analysis_focus` 加 `請求到回應`，報告會用白話說明從收到請求到回應結果的過程。
 - 想讓流程更容易讀：`analysis_focus` 加 `流程圖`。
+- 問題跨系統或跨服務：`analysis_focus` 加 `系統時序圖`，報告會輸出 Mermaid `sequenceDiagram`。
 - 想讓文件可支撐維護：用 `maintenance_facets` 指定要補哪些條件附錄。
 - 想提高精確度：`analysis_focus` 再加 `反證審查, 精確度檢查`。
+- 想建立專案知識庫：確認每次分析後更新 `program_index.md` 與 `shared_components.md`。
