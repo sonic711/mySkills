@@ -11,3 +11,6 @@
 # Common local noise
 .DS_Store
 .idea/
+
+# Local analysis drafts
+第一版/
