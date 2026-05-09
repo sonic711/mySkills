@@ -1,108 +1,255 @@
 # mySkills
 
-此 repo 用來管理多專案程式分析規格。內容只放 `.md` 文件，不放專案程式。
+這個 repo 放的是「專案程式分析用的 skill 規格文件」。用途是讓 AI agent 在分析 Java / Spring / 多模組 / 跨系統專案時，有固定流程可以遵循，產出一致、可維護、可重用的繁體中文分析報告。
 
-## 核心原則
-- 分析任務採唯讀模式：只讀專案與 skill 文件，只輸出報告。
-- 分析前先查既有報告與專案索引；若已有完整報告或共用元件報告，優先重用，只補缺口。
-- 正式報告必須用繁體中文、Markdown、`.md` 副檔名。
-- 正式報告固定輸出到 `analysis_output/<project_name>/`。
-- 每個專案的分析索引固定輸出到 `analysis_registry/<project_name>/`。
-- 描述程式流程、交易流程、路由鏈或資料流時，優先補 Mermaid 流程圖。
-- 若問題跨到不同系統、服務、外部 API、MQ、gRPC callback 或跨專案，正式報告必須補 Mermaid `sequenceDiagram` 系統架構交易時序圖。
-- 每個結論都要能區分 `Confirmed`、`Inferred`、`Unknown`；已確認證據放在主體段落，最後「未確認關鍵證據」只列未確認或待補查項。
-- 正式報告輸出前，必須經過第十人原則審查；審查只供分析時使用，不輸出成正式報告章節。
-- 正式報告要有「請求到回應完整說明」章節，白話說明從收到請求到回應結果中間做了什麼。
-- 若目標是系統維護，採 facet 機制補強，只在符合特徵時追加對應附錄。
+## 安裝到要分析的專案
 
-## 主要文件
-- `main_orchestrator.md`：主路由、流程、輸入輸出規格。
-- `analysis_report_registry.md`：查找既有報告、維護程式分析清單與共用元件清單。
-- `conditional_maintenance_facets.md`：條件式維護附錄與觸發規則。
-- `code_issue_investigator.md`：從異常現象反查功能、套件、資料流、寫入點與可能原因。
-- `project_navigator.md`：定位專案、模組、目標與入口線索。
-- `dependency_mapper.md`：分析入站、出站、build/config、DB 依賴。
-- `inter_service_communication.md`：分析上游、下游、路由鏈、資料契約、異常流。
-- `feature_capability_mapper.md`：由功能反查對應程式與元件群。
-- `implementation_deep_dive.md`：拆解單一程式的變數、方法、流程與資料結構。
-- `roleIdentity_synthesizer.md`：整合定位、依賴、通訊，輸出角色與風險。
-- `tenth_man_auditor.md`：反證、挑錯、降級、精確度審查。
-- `sample_request_templates.md`：常用請求模板。
+這些 skill 是純 Markdown 規格，任何可以讀檔、搜尋檔案、輸出 Markdown 的 AI agent 都可以使用，不限定 Codex。
 
-## 支援的分析模式
-1. 報告重用模式：先查既有報告與專案索引，判斷 `Reuse` / `Patch` / `Reference Only` / `Analyze Fresh`。
-2. 已知程式：分析用途、上下游、交易細節、依賴影響。
-3. 已知程式：做深度實作解剖，不看原始碼也能理解內容。
-4. 已知功能：反查對應程式、設定、資料流，再做完整分析。
-5. 高精確度模式：在正式輸出前加做第十人原則審查，並把審查結果整合成正文保留語句或未確認項。
-6. 維護模式：用 facet 補強排查、重跑、修資料與回歸驗證，但不把所有報告寫成同一型。
-7. 問題調查模式：由異常現象反查相關程式、套件引用、寫入點與原因假說。
+建議安裝方式有兩種：
 
-## 分析索引
-- `analysis_registry/<project_name>/program_index.md`：記錄哪些程式、功能或流程已產生報告。
-- `analysis_registry/<project_name>/shared_components.md`：記錄哪些元件是共用元件，後續報告只引用摘要，不重複分析。
-- `analysis_registry/_template/`：新專案索引模板。
+### 方式 A：放在共同 workspace 底下
 
-## 輸入最小格式
+適合 agent 可以讀取同一個 workspace 內多個資料夾的情境。把 `mySkills` 放在「要分析的專案旁邊」，不要混進被分析專案的原始碼目錄。
+
+範例目錄：
+
+```text
+development/
+├── mySkills/
+└── fsap-adm/
+```
+
+如果尚未下載：
+
+```bash
+cd ~/Desktop/development
+git clone https://github.com/sonic711/mySkills.git
+```
+
+如果已經有 repo，只要更新：
+
+```bash
+cd ~/Desktop/development/mySkills
+git pull
+```
+
+使用時，agent 的工作目錄或可讀範圍必須包含：
+
+- `mySkills/`
+- 被分析專案，例如 `fsap-adm/`
+
+如果 agent 有 sandbox 限制，建議把 workspace 開在共同上層：
+
+```bash
+cd ~/Desktop/development
+```
+
+### 方式 B：複製到被分析專案內
+
+適合 agent 只能讀取單一專案目錄的情境。把 `mySkills` 複製或 clone 到被分析專案底下，例如：
+
+```text
+fsap-adm/
+├── .analysis-skills/
+│   └── mySkills/
+└── ...
+```
+
+範例：
+
+```bash
+cd /path/to/fsap-adm
+mkdir -p .analysis-skills
+git clone https://github.com/sonic711/mySkills.git .analysis-skills/mySkills
+```
+
+這種方式的 prompt 要改用專案內路徑：
+
+```text
+請使用 .analysis-skills/mySkills/main_orchestrator.md 的規則分析目前專案。
+```
+
+## 權限與 sandbox 注意事項
+
+不同 agent 的檔案權限模型不同。使用前請確認 agent 能同時：
+
+- 讀取 skill 文件，例如 `mySkills/main_orchestrator.md`
+- 讀取被分析專案原始碼
+- 寫入報告輸出目錄，例如 `analysis_output/<project_name>/`
+- 寫入分析索引，例如 `analysis_registry/<project_name>/`
+
+如果 agent 無法跨目錄讀取，請使用「方式 B：複製到被分析專案內」。
+
+如果 agent 無法寫入 repo 外部目錄，請把 `analysis_output/` 與 `analysis_registry/` 放在 agent 可寫的專案目錄內。
+
+## 如何讓 AI agent 使用這些 skills
+
+在任何 AI agent 對話中，直接指定 skill 文件路徑與要分析的專案路徑即可。
+
+最短格式：
+
+```text
+請使用 /path/to/mySkills/main_orchestrator.md 的規則分析：
+
+project_name: fsap-common-service
+project_path: /path/to/fsap-adm/fsap-common-service
+branch: uat
+target_name: BT908Service
+target_type: class
+analysis_focus: 用途, 業務流程簡述, 上下游, 交易細節, 路由鏈, 資料契約, 請求到回應, 異常流, 流程圖, 系統時序圖
+```
+
+如果提供 `branch`，agent 需要先在 `project_path` 執行 Git 前置檢查：切到該分支、執行 `git pull --ff-only`，再用 pull 前後 commit diff 判斷這次拉下來的異動是否影響本次目標或既有分析文件。正式報告不需要顯示分支名稱，只需要標明分析當下最新的 commit。
+
+如果不確定程式在哪裡，可以只給功能描述：
+
+```text
+請使用 /path/to/mySkills/main_orchestrator.md 的規則分析：
+
+project_name: fsap-adm
+project_path: /path/to/fsap-adm
+target_name: log 集中化如何運作
+target_type: feature
+analysis_focus: 用途, 業務流程簡述, 上下游, 交易細節, 路由鏈, 資料契約, 請求到回應, 異常流, 流程圖, 系統時序圖
+```
+
+如果 agent 不支援自動載入外部文件，請先把 `main_orchestrator.md` 內容貼給 agent，並要求它依文件中列出的其他 skill 檔案逐步讀取。
+
+## 建議輸入欄位
+
 ```text
 project_name: 專案名稱
-target_name: 類別名 / 方法名 / 功能名
-target_type: class / file / method / feature / flow
-analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 請求到回應, 異常流, 流程圖, 系統時序圖
-scope_hint: 其他線索
+project_path: 專案實際路徑
+branch: 要分析的 Git 分支，例如 uat
+target_name: 類別名 / 方法名 / 功能名 / 流程名 / 問題描述
+target_type: class / file / method / feature / flow / issue
+analysis_focus: 用途, 業務流程簡述, 上下游, 交易細節, 路由鏈, 資料契約, 請求到回應, 異常流, 流程圖, 系統時序圖
+scope_hint: 額外線索，例如 API path、txCode、table、topic、錯誤碼
 output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
 
-## 維護 Facets
-- `batch_scheduler`：批次、排程、手動觸發、重跑風險
-- `db_write`：資料寫入矩陣、key、修復注意事項
-- `broadcast_event`：廣播/事件通知矩陣
-- `external_contract`：外部 request/response 契約與成功條件
-- `manual_rerun`：補跑、重送、人工重跑
-- `cache_sync`：快取/同步刷新驗證
+## 常用分析方式
 
-## 常見提問
-### 1. 已知程式
+### 已知程式
+
 ```text
 project_name: billing-core
+project_path: /path/to/billing-core
+branch: uat
 target_name: G0126RIM01Service
 target_type: class
-analysis_focus: 用途, 上下游, 交易細節, 路由鏈, 資料契約, 請求到回應, 異常流, 流程圖, 系統時序圖
+analysis_focus: 用途, 業務流程簡述, 上下游, 交易細節, 路由鏈, 資料契約, 請求到回應, 異常流, 流程圖, 系統時序圖
 ```
 
-### 2. 已知功能
+### 已知功能，不知道程式
+
 ```text
 project_name: payment-platform
+project_path: /path/to/payment-platform
 target_name: log 集中化如何運作
 target_type: feature
-analysis_focus: 用途, 上下游, 交易細節, 依賴影響, 路由鏈, 資料契約, 請求到回應, 異常流, 流程圖, 系統時序圖
-scope_hint: logback, appender, fluentd, elk, tracing
+analysis_focus: 用途, 業務流程簡述, 上下游, 交易細節, 依賴影響, 路由鏈, 資料契約, 請求到回應, 異常流, 流程圖, 系統時序圖
+scope_hint: logback, appender, tracing, log server
 ```
 
-### 3. 單一程式深度解剖
+### 單一程式深度解剖
+
 ```text
 project_name: account-service
+project_path: /path/to/account-service
 target_name: UserSyncService.java
 target_type: file
-analysis_focus: 實作細節, 變數分析, 方法分析, 物件結構, 完整流程, 請求到回應, 流程圖
+analysis_focus: 業務流程簡述, 實作細節, 變數分析, 方法分析, 物件結構, 完整流程, 請求到回應, 流程圖
 scope_hint: 我不想看原始碼，請完整拆解
 ```
 
-### 4. 程式問題原因調查
+### 程式問題原因調查
+
 ```text
 project_name: payment-core
+project_path: /path/to/payment-core
 target_type: issue
 issue_description: 同一個錯誤交易，error_log.msg 與 sys_posteifmsg.msg 不一致，請分析可能原因
-analysis_focus: 問題原因, 資料流, 寫入點, 套件引用, 邏輯分支, 驗證方式, 請求到回應
-scope_hint: error_log, sys_posteifmsg, msg, transaction id；請追到最後 setMsg、save/send 前轉換與 utility 截斷/格式化
+analysis_focus: 業務流程簡述, 問題原因, 資料流, 寫入點, 套件引用, 邏輯分支, 驗證方式, 請求到回應
+scope_hint: error_log, sys_posteifmsg, msg, transaction id；請追到最後 setMsg、save/send 前轉換
 maintenance_facets: db_write, external_contract
 ```
 
-### 5. 先查既有報告與索引
+### 先查既有報告再分析
+
 ```text
 project_name: fsap-common-service
+project_path: /path/to/fsap-common-service
+branch: uat
 target_name: BT908Service
 target_type: class
-analysis_focus: 用途, 上下游, 請求到回應, 異常流, 系統時序圖
-scope_hint: 請先查既有報告與 program_index；若已有完整報告就重用，只補缺少的章節
+analysis_focus: 用途, 業務流程簡述, 上下游, 請求到回應, 異常流, 系統時序圖
+scope_hint: 請先查既有報告與 program_index；若已有完整報告就重用，只補缺少的章節，例如業務流程簡述
 ```
+
+## 報告輸出位置
+
+正式報告固定輸出到：
+
+```text
+analysis_output/<project_name>/
+```
+
+建議檔名：
+
+```text
+analysis_output/<project_name>/<project_name>__<target_name>__analysis.md
+```
+
+每個專案的分析索引固定輸出到：
+
+```text
+analysis_registry/<project_name>/program_index.md
+analysis_registry/<project_name>/shared_components.md
+analysis_registry/<project_name>/git_history.md
+analysis_registry/<project_name>/impact_todo.md
+```
+
+## 主要 skill 文件
+
+- `main_orchestrator.md`：主流程。所有分析任務建議先使用它。
+- `analysis_report_registry.md`：先查既有報告與專案索引，減少重複讀程式。
+- `project_navigator.md`：定位專案、模組、目標與入口線索。
+- `feature_capability_mapper.md`：從功能描述反查程式與元件。
+- `dependency_mapper.md`：分析入站、出站、build/config、DB 依賴。
+- `inter_service_communication.md`：分析跨服務、API、gRPC、MQ、callback、交易鏈。
+- `implementation_deep_dive.md`：拆解單一程式的變數、方法、流程與資料結構。
+- `code_issue_investigator.md`：從異常現象追資料流、寫入點、最後賦值點與可能原因。
+- `conditional_maintenance_facets.md`：依特徵補維護面向，例如重跑、DB 寫入、外部契約。
+- `roleIdentity_synthesizer.md`：整合角色、重要性、風險與驗證重點。
+- `tenth_man_auditor.md`：正式輸出前的內部反證審查。
+- `sample_request_templates.md`：更多請求模板。
+
+## 產出報告的固定要求
+
+- 使用繁體中文。
+- 使用 Markdown。
+- 若輸入包含 `branch`，必須先切到該分支並執行 `git pull --ff-only`，以該分支 pull 後狀態作為分析基準。
+- 正式報告不顯示分支名稱，只標明分析基準 commit。
+- 若 pull 下來的異動不包含本次目標，忽略無關異動；若包含已分析過的其他程式，更新舊文件或加入 `impact_todo.md`。
+- 若本次目標先前已分析過，且 pull diff 顯示邏輯有變，正式報告必須補「本次邏輯變更」，說明原本邏輯改成目前邏輯。
+- 先查既有報告與 `analysis_registry`，可重用時只補缺口。
+- 每個結論要能區分 `Confirmed` / `Inferred` / `Unknown`。
+- 最後只列「未確認關鍵證據」，不要重複列已確認證據清單。
+- 必須有「業務流程簡述」，用業務面向說明目的、參與對象、輸入、處理與結果，不在該章節堆技術細節。
+- 必須有「請求到回應完整說明」，讓不懂系統的人也能看懂。
+- 若跨系統、跨服務、MQ、gRPC callback、外部 API 或跨專案，必須輸出 Mermaid `sequenceDiagram` 系統架構交易時序圖。
+- 若流程超過 3 個節點，優先補 Mermaid 流程圖。
+- 第十人原則只作為內部審查使用，不輸出成正式報告章節。
+
+## 更新 skills
+
+在 `mySkills` repo 內更新：
+
+```bash
+cd /Users/sonic711/Desktop/development/mySkills
+git pull
+```
+
+若在不同機器或不同 agent 使用，先 clone 這個 repo，再在 prompt 中指定 `main_orchestrator.md` 的實際路徑。
