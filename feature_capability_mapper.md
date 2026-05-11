@@ -16,7 +16,7 @@
 | `project_path` | 否 | 專案不在預設位置時提供 |
 | `target_name` | 是 | 功能名、能力描述或流程問題 |
 | `target_type` | 建議 | `feature` |
-| `analysis_focus` | 否 | `用途` / `業務流程簡述` / `上下游` / `交易細節` / `依賴影響` / `路由鏈` / `資料契約` / `請求到回應` / `異常流` |
+| `analysis_focus` | 否 | `用途` / `業務流程簡述` / `系統交易與資料流` / `資料格式` / `SQL與資料存取` / `上下游` / `交易細節` / `依賴影響` / `路由鏈` / `資料契約` / `異常流` |
 | `scope_hint` | 否 | 關鍵字、框架、topic、API path、table、設定名、技術名詞 |
 
 ## 執行流程
@@ -36,6 +36,8 @@
 
 ### 4. 功能鏈初步重建
 - 補出可能入口、主要處理節點、下游去向、資料載體、配置開關。
+- 補出初步系統交易與資料流：來源、目的地、通訊方式、資料格式、主要欄位與結果。
+- 補出可能 SQL 與資料存取觸點：table、mapper、repository、stored procedure；未找到也標示 `未發現` 或 `Unknown`。
 - 若只找到局部元件，明寫缺口，不補腦。
 
 ### 5. 移交後續 skill
@@ -81,12 +83,22 @@
 - 業務結果：
 - 不包含的業務範圍：
 
-## 7. 建議後續分析路徑
+## 7. 初步系統交易與資料流
+| 順序 | 方向 | 來源 | 目的地 | 方式 | 資料格式/物件 | 主要欄位 | 信心 |
+|------|------|------|--------|------|----------------|----------|------|
+| 1 | inbound / outbound / DB / MQ / callback | | | API / MQ / DB / file / method | | | Confirmed / Inferred / Unknown |
+
+## 8. 初步 SQL 與資料存取
+| 類型 | 線索 | Table/SP/Mapper | 讀寫 | 信心 |
+|------|------|-----------------|------|------|
+| SELECT / INSERT / UPDATE / DELETE / SP / Repository / 未發現 / 未確認 | | | 讀 / 寫 / 未確認 | |
+
+## 9. 建議後續分析路徑
 1. 先深入：
 2. 再補依賴：
 3. 再補通訊/交易鏈：
 
-## 8. 未確認關鍵證據
+## 10. 未確認關鍵證據
 - [Inferred] 推定原因與目前依據：
 - [Unknown] 尚缺資訊與需補查位置：
 ```
@@ -108,6 +120,8 @@
 - `core_components`
 - `supporting_components`
 - `business_flow_draft`
+- `initial_transaction_data_flow`
+- `initial_sql_data_access`
 - `suspected_entrypoints`
 - `suspected_data_artifacts`
 - `followup_recommendations`
@@ -115,6 +129,8 @@
 ## 品質門檻
 - [ ] 是否先做功能語意收斂？
 - [ ] 是否整理出業務流程簡述草稿，並標明不確定處？
+- [ ] 是否整理出初步系統交易與資料流？
+- [ ] 是否整理出可能 SQL 與資料存取觸點？
 - [ ] 是否接受多個候選，不硬壓成單一檔案？
 - [ ] 是否區分核心與周邊元件？
 - [ ] 是否明示缺口與低信心候選？

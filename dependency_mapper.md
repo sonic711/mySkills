@@ -18,7 +18,7 @@
 | `project_path` | 否 | 專案不在預設位置時提供 |
 | `target_name` | 是 | 程式名、類別名、方法名、功能名或流程名 |
 | `target_type` | 否 | `class` / `file` / `method` / `feature` / `flow` |
-| `analysis_focus` | 否 | `用途` / `業務流程簡述` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `請求到回應` / `異常流` |
+| `analysis_focus` | 否 | `用途` / `業務流程簡述` / `系統交易與資料流` / `資料格式` / `SQL與資料存取` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` |
 | `maintenance_facets` | 否 | `db_write` / `manual_rerun` / `cache_sync` |
 | `scope_hint` | 否 | 模組、套件、依賴庫、資料表、設定名等線索 |
 | `resolved_target_path` | 建議 | 由 `project_navigator.md` 帶入 |
@@ -46,8 +46,10 @@
 - DAO / Repository / Mapper method
 - SQL / XML / mapper id
 - Table / View / Stored Procedure
+- SQL 類型：SELECT / INSERT / UPDATE / DELETE / CALL / dynamic SQL / repository method
+- 查詢條件、更新條件或 key 欄位
 
-若可確認沒有 HTTP、MQ、Cache、File、第三方依賴，也要明寫 `未發現`。
+若可確認沒有 DB/SQL、HTTP、MQ、Cache、File、第三方依賴，也要明寫 `未發現`。若未追到 mapper 或 SQL 來源，標成 `未確認`。
 
 ### 6. 影響半徑判斷
 - 依入站/出站數量與層級推估修改影響：單模組、跨模組、跨服務、共用基礎模組。
@@ -98,18 +100,23 @@
 - SQL / XML -> Table / SP：
 - 明示未發現依賴：
 
-## 7. 修改風險
+## 7. SQL 與資料存取
+| 類型 | 位置 | Table/SP/Mapper | SQL/方法摘要 | 條件 | 讀寫 | 用途 |
+|------|------|-----------------|--------------|------|------|------|
+| SELECT / INSERT / UPDATE / DELETE / CALL / Repository / 未發現 / 未確認 | | | | | 讀 / 寫 / 未確認 | |
+
+## 8. 修改風險
 - 編譯風險：
 - 行為風險：
 - 模組波及：
 - 版本或耦合風險：
 
-## 8. 條件附錄（符合 facet 時才補）
+## 9. 條件附錄（符合 facet 時才補）
 - `db_write`：資料寫入矩陣
 - `manual_rerun`：重跑與補救
 - `cache_sync`：快取/同步刷新驗證
 
-## 9. 未確認關鍵證據
+## 10. 未確認關鍵證據
 - [Inferred] 推定原因與目前依據：
 - [Unknown] 尚缺資訊與需補查位置：
 ```
@@ -142,6 +149,7 @@
 - [ ] 是否區分靜態依賴與 runtime 流程？
 - [ ] 是否補到 build / config 視角？
 - [ ] 若涉及 DB，是否補到 `Service -> DAO -> SQL -> Table/SP`？
+- [ ] 是否輸出 SQL 與資料存取表；沒有 SQL 時是否明示 `未發現` 或 `未確認`？
 - [ ] 是否只追加符合特徵的 facet？
 - [ ] 是否明示未發現的依賴類型？
 - [ ] 是否明確說出修改影響半徑？

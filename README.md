@@ -97,7 +97,7 @@ project_path: /path/to/fsap-adm/fsap-common-service
 branch: uat
 target_name: BT908Service
 target_type: class
-analysis_focus: 用途, 業務流程簡述, 上下游, 交易細節, 路由鏈, 資料契約, 請求到回應, 異常流, 流程圖, 系統時序圖
+analysis_focus: 用途, 業務流程簡述, 系統交易與資料流, 資料格式, SQL與資料存取, 異常流, 流程圖, 系統時序圖
 ```
 
 如果提供 `branch`，agent 需要先在 `project_path` 執行 Git 前置檢查：切到該分支、執行 `git pull --ff-only`，再用 pull 前後 commit diff 判斷這次拉下來的異動是否影響本次目標或既有分析文件。正式報告不需要顯示分支名稱，只需要標明分析當下最新的 commit。
@@ -111,7 +111,7 @@ project_name: fsap-adm
 project_path: /path/to/fsap-adm
 target_name: log 集中化如何運作
 target_type: feature
-analysis_focus: 用途, 業務流程簡述, 上下游, 交易細節, 路由鏈, 資料契約, 請求到回應, 異常流, 流程圖, 系統時序圖
+analysis_focus: 用途, 業務流程簡述, 系統交易與資料流, 資料格式, SQL與資料存取, 異常流, 流程圖, 系統時序圖
 ```
 
 如果 agent 不支援自動載入外部文件，請先把 `main_orchestrator.md` 內容貼給 agent，並要求它依文件中列出的其他 skill 檔案逐步讀取。
@@ -124,7 +124,7 @@ project_path: 專案實際路徑
 branch: 要分析的 Git 分支，例如 uat
 target_name: 類別名 / 方法名 / 功能名 / 流程名 / 問題描述
 target_type: class / file / method / feature / flow / issue
-analysis_focus: 用途, 業務流程簡述, 上下游, 交易細節, 路由鏈, 資料契約, 請求到回應, 異常流, 流程圖, 系統時序圖
+analysis_focus: 用途, 業務流程簡述, 系統交易與資料流, 資料格式, SQL與資料存取, 異常流, 流程圖, 系統時序圖
 scope_hint: 額外線索，例如 API path、txCode、table、topic、錯誤碼
 output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
@@ -139,7 +139,7 @@ project_path: /path/to/billing-core
 branch: uat
 target_name: G0126RIM01Service
 target_type: class
-analysis_focus: 用途, 業務流程簡述, 上下游, 交易細節, 路由鏈, 資料契約, 請求到回應, 異常流, 流程圖, 系統時序圖
+analysis_focus: 用途, 業務流程簡述, 系統交易與資料流, 資料格式, SQL與資料存取, 異常流, 流程圖, 系統時序圖
 ```
 
 ### 已知功能，不知道程式
@@ -149,7 +149,7 @@ project_name: payment-platform
 project_path: /path/to/payment-platform
 target_name: log 集中化如何運作
 target_type: feature
-analysis_focus: 用途, 業務流程簡述, 上下游, 交易細節, 依賴影響, 路由鏈, 資料契約, 請求到回應, 異常流, 流程圖, 系統時序圖
+analysis_focus: 用途, 業務流程簡述, 系統交易與資料流, 資料格式, SQL與資料存取, 依賴影響, 異常流, 流程圖, 系統時序圖
 scope_hint: logback, appender, tracing, log server
 ```
 
@@ -160,8 +160,8 @@ project_name: account-service
 project_path: /path/to/account-service
 target_name: UserSyncService.java
 target_type: file
-analysis_focus: 業務流程簡述, 實作細節, 變數分析, 方法分析, 物件結構, 完整流程, 請求到回應, 流程圖
-scope_hint: 我不想看原始碼，請完整拆解
+analysis_focus: 業務流程簡述, 系統交易與資料流, 資料格式, SQL與資料存取, 實作細節, 流程圖
+scope_hint: 我不想看原始碼，請先說明業務作用、資料流、資料格式與 SQL；技術細節放附錄
 ```
 
 ### 程式問題原因調查
@@ -171,7 +171,7 @@ project_name: payment-core
 project_path: /path/to/payment-core
 target_type: issue
 issue_description: 同一個錯誤交易，error_log.msg 與 sys_posteifmsg.msg 不一致，請分析可能原因
-analysis_focus: 業務流程簡述, 問題原因, 資料流, 寫入點, 套件引用, 邏輯分支, 驗證方式, 請求到回應
+analysis_focus: 業務流程簡述, 系統交易與資料流, 資料格式, SQL與資料存取, 問題原因, 資料流, 寫入點, 套件引用, 邏輯分支, 驗證方式
 scope_hint: error_log, sys_posteifmsg, msg, transaction id；請追到最後 setMsg、save/send 前轉換
 maintenance_facets: db_write, external_contract
 ```
@@ -184,8 +184,8 @@ project_path: /path/to/fsap-common-service
 branch: uat
 target_name: BT908Service
 target_type: class
-analysis_focus: 用途, 業務流程簡述, 上下游, 請求到回應, 異常流, 系統時序圖
-scope_hint: 請先查既有報告與 program_index；若已有完整報告就重用，只補缺少的章節，例如業務流程簡述
+analysis_focus: 用途, 業務流程簡述, 系統交易與資料流, 資料格式, SQL與資料存取, 異常流, 系統時序圖
+scope_hint: 請先查既有報告與 program_index；若已有完整報告就重用，只補缺少的章節，例如快速結論、業務流程、資料流、資料格式或 SQL
 ```
 
 ## 報告輸出位置
@@ -237,8 +237,11 @@ analysis_registry/<project_name>/impact_todo.md
 - 先查既有報告與 `analysis_registry`，可重用時只補缺口。
 - 每個結論要能區分 `Confirmed` / `Inferred` / `Unknown`。
 - 最後只列「未確認關鍵證據」，不要重複列已確認證據清單。
+- 必須先有「快速結論」，讓非系統負責人快速知道功能或程式的作用、主要輸入、主要輸出、是否跨系統、是否執行 SQL。
 - 必須有「業務流程簡述」，用業務面向說明目的、參與對象、輸入、處理與結果，不在該章節堆技術細節。
-- 必須有「請求到回應完整說明」，讓不懂系統的人也能看懂。
+- 必須有「系統交易與資料流」與「交易資料格式」，標明系統之間資料來源、目的地、傳輸方式、格式、主要欄位與結果。
+- 必須有「SQL 與資料存取」；有 SQL/Mapper/Repository/SP/table 時必須列出，沒有找到也要標示 `未發現` 或 `未確認`。
+- class、method、變數、完整 call tree 等技術細節應放在附錄，避免主體報告過長。
 - 若跨系統、跨服務、MQ、gRPC callback、外部 API 或跨專案，必須輸出 Mermaid `sequenceDiagram` 系統架構交易時序圖。
 - 若流程超過 3 個節點，優先補 Mermaid 流程圖。
 - 第十人原則只作為內部審查使用，不輸出成正式報告章節。
