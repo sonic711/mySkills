@@ -21,6 +21,7 @@
 | `project_name` | 專案名稱 |
 | `project_path` | 專案實際路徑；不在預設位置時提供 |
 | `branch` | 要分析的 Git 分支，例如 `uat`；提供時需先切分支、pull，並檢查 pull diff 影響 |
+| `inventory_mode` | `scan` / `diff` / `plan_analysis` / `next_unanalyzed`；建立 Java 清單、檢查增刪或產生分析佇列時使用 |
 | `target_name` | 類別名、方法名、功能名或流程問題 |
 | `issue_description` | 問題現象；問題導向調查時填 |
 | `target_type` | `class` / `file` / `method` / `feature` / `flow` / `issue` |
@@ -36,7 +37,8 @@
 - 若 pull diff 影響其他已分析程式，加入 `analysis_registry/<project_name>/impact_todo.md` 或更新對應舊文件。
 - 正式報告只顯示分析基準 commit，不顯示分支名稱。
 - 若更新舊報告且邏輯有變，正式報告要補「本次邏輯變更」章節。
-- 先查 `analysis_registry/<project_name>/program_index.md` 與 `shared_components.md`。
+- 先查 `analysis_registry/<project_name>/program_inventory.md`、`program_index.md` 與 `shared_components.md`。
+- 若需要自動依序分析或檢查尚未分析程式，先查或更新 `analysis_registry/<project_name>/program_inventory.md`。
 - 若已有完整報告，採 `Reuse`。
 - 若舊報告缺少新規格章節，例如「快速結論」、「業務流程簡述」、「系統交易與資料流」、「交易資料格式」或「SQL 與資料存取」，採 `Patch`。
 - 若命中共用元件，採 `Reference Only`。
@@ -50,7 +52,53 @@
 ## 第十人原則
 若要提高精確度，請在 `analysis_focus` 補：`反證審查, 精確度檢查`。這只會影響分析與降級，不會新增正式報告章節。
 
+## Java 程式清單原則
+- `program_inventory.md` 只統計 `.java`。
+- 用於記錄 Java 檔案總數、已分析、未分析、新增、刪除、移動、需更新。
+- 可作為 agent 自動分析尚未分析程式的依據。
+- 分析指定程式時，可用 inventory 的輕量依賴圖先排 B、C 等前置依賴，再分析 A。
+
 ## Templates
+### Template 0：建立或更新 Java 程式清單
+```text
+project_name: [專案名稱]
+project_path: [專案路徑]
+inventory_mode: scan
+scope_hint: 請掃描專案內所有 .java，建立或更新 analysis_registry/<project_name>/program_inventory.md，統計 Java 總數、已分析、未分析、新增、刪除、移動與需更新
+output_requirements: 繁體中文, analysis_registry/<project_name>/program_inventory.md
+```
+
+### Template 0B：檢查新增或刪除 Java 程式
+```text
+project_name: [專案名稱]
+project_path: [專案路徑]
+inventory_mode: diff
+scope_hint: 請比對 program_inventory.md 與目前專案 .java，列出 Added、Deleted、Moved、Changed，並更新尚未分析清單
+output_requirements: 繁體中文, analysis_registry/<project_name>/program_inventory.md
+```
+
+### Template 0C：依指定程式的依賴順序安排分析
+```text
+project_name: [專案名稱]
+project_path: [專案路徑]
+target_name: [AService.java]
+target_type: class
+inventory_mode: plan_analysis
+analysis_focus: 用途, 業務流程簡述, 系統交易與資料流, 資料格式, SQL與資料存取
+scope_hint: 請先用 program_inventory.md 檢查 A 依賴的 B、C 是否已分析；若 B、C 尚未分析，先排入分析佇列，再分析 A 並整合結果
+output_requirements: 繁體中文, analysis_output/<project_name>/, md
+```
+
+### Template 0D：自動分析下一批尚未分析程式
+```text
+project_name: [專案名稱]
+project_path: [專案路徑]
+inventory_mode: next_unanalyzed
+analysis_focus: 用途, 業務流程簡述, 系統交易與資料流, 資料格式, SQL與資料存取
+scope_hint: 請根據 program_inventory.md 的尚未分析清單，依優先序產生分析佇列；每完成一支程式後更新 program_inventory.md 與 program_index.md
+output_requirements: 繁體中文, analysis_output/<project_name>/, md
+```
+
 ### Template 1：已知 class / service
 ```text
 project_name: [專案名稱]
@@ -229,6 +277,10 @@ output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ## 使用建議
 - 想減少重複讀程式：要求先查 `analysis_registry` 與既有報告。
 - 想分析特定分支當下狀態：填 `branch: uat`，agent 會先 pull 再分析 diff 影響。
+- 想建立或更新專案 Java 清單：設定 `inventory_mode: scan`。
+- 想檢查新增/刪除/移動 Java 程式：設定 `inventory_mode: diff`。
+- 想依指定程式依賴順序分析：設定 `inventory_mode: plan_analysis` 並填 `target_name`。
+- 想自動分析尚未分析程式：設定 `inventory_mode: next_unanalyzed`。
 - 已知程式名：`target_type` 用 `class`、`file` 或 `method`。
 - 已知功能、不知道程式：`target_type` 用 `feature`。
 - 已知異常現象、不知道原因：`target_type` 用 `issue`，並填 `issue_description`。
@@ -239,4 +291,4 @@ output_requirements: 繁體中文, analysis_output/<project_name>/, md
 - 問題跨系統或跨服務：`analysis_focus` 加 `系統時序圖`，報告會輸出 Mermaid `sequenceDiagram`。
 - 想讓文件可支撐維護：用 `maintenance_facets` 指定要補哪些條件附錄。
 - 想提高精確度：`analysis_focus` 再加 `反證審查, 精確度檢查`。
-- 想建立專案知識庫：確認每次分析後更新 `program_index.md` 與 `shared_components.md`。
+- 想建立專案知識庫：確認每次分析後更新 `program_inventory.md`、`program_index.md` 與 `shared_components.md`。

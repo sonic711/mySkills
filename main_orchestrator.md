@@ -4,6 +4,7 @@
 
 ## 可調用 skill
 - `git_analysis_preflight.md`
+- `project_program_inventory.md`
 - `analysis_report_registry.md`
 - `conditional_maintenance_facets.md`
 - `code_issue_investigator.md`
@@ -21,6 +22,8 @@
 - 不可把 import、命名慣例、鄰近檔案直接寫成交易事實。
 - 若證據不足，必須降級為 `Inferred` 或 `Unknown`。
 - 若已有可重用報告或已分析共用元件，優先引用既有報告，只補缺口，不重複讀完整程式。
+- 若使用者要求盤點專案、檢查新增/刪除程式、找尚未分析程式、或要 agent 自動依序分析，先使用 `project_program_inventory.md` 建立/更新 `.java` 清單與分析佇列。
+- `program_inventory.md` 是 agent 自動分析的排程依據；分析指定目標時，若 inventory 顯示尚未分析的前置依賴，先依佇列處理前置依賴，再分析目標。
 - 正式報告優先服務非系統負責人：先回答「這是什麼、業務上做什麼、資料怎麼在系統間流動、是否執行 SQL」，再把技術細節放到附錄。
 - 正文必須精簡；避免把每個 class、method、變數、依賴都攤在主體章節。只有使用者明確要求深度解剖時，才在附錄展開完整實作。
 - 指定 `branch` 時，分析基準必須是該分支 `git pull --ff-only` 後的狀態；pull 下來的其他程式異動若命中已分析報告，需更新舊文件或加入待辦清單。
@@ -52,6 +55,7 @@
 - 正式報告固定放在 `analysis_output/<project_name>/`。
 - 建議檔名：`analysis_output/<project_name>/<project_name>__<target_name>__analysis.md`。
 - 每個專案的分析索引固定放在 `analysis_registry/<project_name>/program_index.md` 與 `analysis_registry/<project_name>/shared_components.md`。
+- 每個專案的 Java 程式清單固定放在 `analysis_registry/<project_name>/program_inventory.md`，用於統計 `.java` 總數、未分析程式、新增/刪除/移動與分析佇列。
 - 若報告包含程式流程、交易流程、路由鏈或資料流，應優先補 Mermaid 流程圖。
 - 若問題跨到不同系統、服務、外部 API、MQ、gRPC callback 或跨專案，正式報告必須補 Mermaid `sequenceDiagram`「系統架構交易時序圖」。
 - 正文建議控制在可快速閱讀的長度；詳細 method、變數、完整 call tree、低價值依賴放「技術附錄」。
@@ -65,6 +69,7 @@
 | `target_name` | 是 | 類別名、檔名、方法名、功能名或流程名 |
 | `issue_description` | 否 | 問題現象；問題導向調查時必填 |
 | `branch` | 否 | 要分析的 Git 分支，例如 `uat`；提供時需切到該分支並 pull |
+| `inventory_mode` | 否 | `scan` / `diff` / `plan_analysis` / `next_unanalyzed`；需要盤點或自動排程時使用 |
 | `target_type` | 建議 | `class` / `file` / `method` / `feature` / `flow` / `issue` |
 | `analysis_focus` | 否 | `用途` / `業務流程簡述` / `系統交易與資料流` / `資料格式` / `SQL與資料存取` / `上下游` / `交易細節` / `依賴影響` / `跨專案比較` / `路由鏈` / `資料契約` / `異常流` / `流程圖` / `系統時序圖` / `請求到回應` / `實作細節` / `變數分析` / `方法分析` / `物件結構` / `完整流程` / `問題原因` / `寫入點` / `套件引用` / `邏輯分支` / `驗證方式` / `反證審查` / `精確度檢查` |
 | `maintenance_facets` | 否 | `batch_scheduler` / `db_write` / `broadcast_event` / `external_contract` / `manual_rerun` / `cache_sync` |
@@ -77,21 +82,28 @@
    - 確認/切換指定分支，執行 `git pull --ff-only`。
    - 比對 pull 前後 diff，判斷是否影響本次目標、既有分析報告或需加入待辦。
    - 若工作區不乾淨、分支不存在、pull 需要 merge/rebase，停止分析並回報。
-1. 所有分析任務一律先執行
+1. 若使用者要求建立/更新程式清單、檢查新增刪除、列出尚未分析、或依依賴順序自動分析，先執行
+   - `project_program_inventory.md`
+   - `inventory_mode=scan`：建立或更新 `program_inventory.md`。
+   - `inventory_mode=diff`：檢查 `.java` 新增、刪除、移動、變更。
+   - `inventory_mode=next_unanalyzed`：產生尚未分析程式佇列。
+   - `inventory_mode=plan_analysis`：針對 `target_name` 產生依賴前置分析佇列。
+   - 若分析佇列包含尚未分析的前置依賴，依佇列順序處理；已分析共用元件採 `ReferenceOnly`。
+2. 所有分析任務一律執行
    - `analysis_report_registry.md`
    - 若回傳 `Reuse`：引用既有報告摘要，必要時只更新引用紀錄。
    - 若回傳 `Patch`：只補舊報告缺口，再更新索引。
    - 若回傳 `Reference Only`：引用共用元件摘要，不重複分析共用細節。
    - 若回傳 `Analyze Fresh`：才進入下列正式分析路由。
-2. `target_type=issue` 或使用者描述資料不一致、錯誤訊息差異、異常現象、可能原因
+3. `target_type=issue` 或使用者描述資料不一致、錯誤訊息差異、異常現象、可能原因
    - `code_issue_investigator.md` -> `project_navigator.md` -> `dependency_mapper.md` / `inter_service_communication.md` / `implementation_deep_dive.md`（依命中元件選用） -> `tenth_man_auditor.md`
-3. `target_type=feature` 或問題在問「某功能如何運作」
+4. `target_type=feature` 或問題在問「某功能如何運作」
    - `feature_capability_mapper.md` -> `project_navigator.md` -> `dependency_mapper.md` -> `inter_service_communication.md` -> `roleIdentity_synthesizer.md` -> `tenth_man_auditor.md`
-4. 已知程式，重點是用途、上下游、交易細節
+5. 已知程式，重點是用途、上下游、交易細節
    - `project_navigator.md` -> `dependency_mapper.md` -> `inter_service_communication.md` -> `roleIdentity_synthesizer.md` -> `tenth_man_auditor.md`
-5. 已知程式，重點是每個變數、方法、資料結構、完整流程
+6. 已知程式，重點是每個變數、方法、資料結構、完整流程
    - `project_navigator.md` -> `implementation_deep_dive.md` -> `tenth_man_auditor.md`
-6. 只想看專案導覽或先找入口
+7. 只想看專案導覽或先找入口
    - `project_navigator.md`
 
 ## 標準流程
@@ -105,12 +117,20 @@
 - 若工作區不乾淨、分支不存在或 pull 無法 fast-forward，停止分析並回報。
 
 ### 1. 既有報告與索引查找
-- 用 `analysis_report_registry.md` 查 `analysis_registry/<project_name>/program_index.md`、`shared_components.md` 與既有報告資料夾。
+- 若需要全專案盤點、增刪檢查或依賴順序分析，先用 `project_program_inventory.md` 讀取或更新 `analysis_registry/<project_name>/program_inventory.md`。
+- 用 `analysis_report_registry.md` 查 `analysis_registry/<project_name>/program_inventory.md`、`program_index.md`、`shared_components.md` 與既有報告資料夾。
 - 先判斷 `Reuse` / `Patch` / `Reference Only` / `Analyze Fresh`。
 - 若已有完整報告，優先引用既有報告，不重複讀完整程式。
 - 若已有共用元件報告，分析新目標時只引用共用元件摘要。
 - 若報告缺少現行必備章節，例如「快速結論」、「業務流程簡述」、「系統交易與資料流」、「交易資料格式」、「SQL 與資料存取」或「未確認關鍵證據」，只補缺口，不重做全量分析。
 - 若索引不存在，先用既有報告反建索引草稿；本輪結束後建立索引。
+
+### 1-1. 程式清單與自動分析佇列
+- `program_inventory.md` 只盤點 `.java` 檔。
+- 若 inventory 顯示 target 依賴 B、C，且 B、C 尚未分析，先分析 B、C 或將其加入分析佇列，再整合 target。
+- 若 B、C 是 `共用元件已分析`，只引用摘要，不重複深度分析。
+- 若使用者要求「自動分析尚未分析程式」，依 `program_inventory.md` 的「尚未分析清單」與「指定目標分析佇列」逐項處理。
+- 每完成一份正式報告後，更新 `program_inventory.md` 與 `program_index.md` 的分析狀態、報告路徑與最後分析資訊。
 
 ### 2. 目標確認
 - 確認 `project_name` / `project_path` / `target_name`。
@@ -152,6 +172,7 @@
 - 若存在 3 個以上流程節點、分支、路由或上下游互動，補一張 Mermaid 流程圖。
 - 若有跨系統互動，補一張 Mermaid `sequenceDiagram` 系統架構交易時序圖，參與者以系統/服務/DB/MQ/外部端點命名。
 - 更新 `analysis_registry/<project_name>/program_index.md`。
+- 若本輪有盤點或分析任一 `.java`，更新 `analysis_registry/<project_name>/program_inventory.md`。
 - 若本輪發現或引用共用元件，更新 `analysis_registry/<project_name>/shared_components.md`。
 - 若有 `branch` 或 pull 異動，更新 `analysis_registry/<project_name>/git_history.md`。
 - 若 pull 異動命中其他已分析程式但本輪未更新，加入 `analysis_registry/<project_name>/impact_todo.md`。
@@ -314,6 +335,8 @@ flowchart TD
 - `resolved_target_path`
 - `task_classification`
 - `registry_findings`
+- `inventory_findings`
+- `analysis_queue`
 - `reuse_strategy`
 - `navigator_findings`
 - `dependency_findings`
@@ -325,6 +348,8 @@ flowchart TD
 
 ## 品質門檻
 - [ ] 是否先查既有報告與專案索引，再決定是否讀程式？
+- [ ] 若需要盤點或自動依序分析，是否先更新 `program_inventory.md`？
+- [ ] 若指定目標有尚未分析的前置依賴，是否依 `program_inventory.md` 佇列先處理或標記？
 - [ ] 是否明確判斷 `Reuse` / `Patch` / `Reference Only` / `Analyze Fresh`？
 - [ ] 正式報告是否只標明分析基準 commit，不顯示 branch？
 - [ ] 若更新舊報告且本次 diff 命中目標，是否補「本次邏輯變更」章節？
@@ -347,5 +372,6 @@ flowchart TD
 - [ ] 是否完成第十人原則審查？
 - [ ] 是否只輸出到 `analysis_output/<project_name>/` 的 `.md` 檔？
 - [ ] 是否更新 `analysis_registry/<project_name>/program_index.md`？
+- [ ] 若本輪涉及 `.java` 盤點或分析，是否更新 `analysis_registry/<project_name>/program_inventory.md`？
 - [ ] 若有共用元件，是否更新 `analysis_registry/<project_name>/shared_components.md`？
 - [ ] 是否未修改任何 skill 文件與專案程式？

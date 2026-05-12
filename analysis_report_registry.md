@@ -7,7 +7,7 @@
 
 ## 責任邊界
 - 先查報告，再決定是否讀原始碼。
-- 維護每個專案的程式分析清單與共用元件清單。
+- 維護每個專案的程式分析清單、Java 程式 inventory 與共用元件清單。
 - 區分「可重用報告」、「需補章節」、「只引用共用元件」、「需重新分析」。
 - 不把舊報告當成絕對真相；若規格已更新、報告缺章節或證據不足，必須標記待補。
 - 不修改專案原始碼；只更新分析索引與分析報告。
@@ -17,6 +17,7 @@
 
 ```text
 analysis_registry/<project_name>/
+├── program_inventory.md
 ├── program_index.md
 ├── shared_components.md
 ├── git_history.md
@@ -37,21 +38,23 @@ analysis_registry/<project_name>/
 | `analysis_focus` | 否 | 用來判斷舊報告是否涵蓋需求，例如 `快速結論`、`業務流程簡述`、`系統交易與資料流`、`資料格式`、`SQL與資料存取`、`系統時序圖` |
 | `scope_hint` | 否 | 模組、API、topic、table、workflow key、DTO、錯誤碼等線索 |
 | `git_preflight_findings` | 建議 | 由 `git_analysis_preflight.md` 帶入，包含 pull 前後 commit 與異動檔案 |
+| `inventory_findings` | 否 | 由 `project_program_inventory.md` 帶入，包含 Java 清單、分析狀態與分析佇列 |
 
 ## 執行流程
 
 ### 1. 載入專案索引
 依序查找：
-1. `analysis_registry/<project_name>/program_index.md`
-2. `analysis_registry/<project_name>/shared_components.md`
-3. `analysis_registry/<project_name>/git_history.md`
-4. `analysis_registry/<project_name>/impact_todo.md`
-5. 既有報告目錄：`analysis_output/<project_name>/`、`第一版/`、`第二版/`、`第三版/` 等使用者保留的報告資料夾
+1. `analysis_registry/<project_name>/program_inventory.md`
+2. `analysis_registry/<project_name>/program_index.md`
+3. `analysis_registry/<project_name>/shared_components.md`
+4. `analysis_registry/<project_name>/git_history.md`
+5. `analysis_registry/<project_name>/impact_todo.md`
+6. 既有報告目錄：`analysis_output/<project_name>/`、`第一版/`、`第二版/`、`第三版/` 等使用者保留的報告資料夾
 
 若索引不存在：
 - 不停止分析。
 - 先用既有報告反建索引草稿。
-- 在本輪輸出報告後建立 `program_index.md` 與必要的 `shared_components.md`。
+- 在本輪輸出報告後建立 `program_inventory.md`、`program_index.md` 與必要的 `shared_components.md`。
 
 ### 2. 查找既有報告
 用下列線索搜尋報告檔名與內容：
@@ -60,6 +63,7 @@ analysis_registry/<project_name>/
 - class / method / feature / flow 名稱
 - `scope_hint` 中的 API path、topic、table、txCode、job id、錯誤碼
 - 報告標題、快速結論、業務流程簡述、系統交易與資料流、交易資料格式、SQL 與資料存取、未確認關鍵證據
+- `program_inventory.md` 的程式名稱、路徑、package、分析狀態、報告路徑、依賴圖與分析佇列
 
 命中多份報告時，優先順序：
 1. 同專案、同 target、最新規格完整報告
@@ -75,6 +79,15 @@ analysis_registry/<project_name>/
 - 若 `impact_decision=RelatedImpacted`：策略至少為 `Patch`，並更新相關依賴、契約、路由或未確認項。
 - 若 `impact_decision=ExistingReportsImpacted`：本次目標照常處理；其他受影響報告寫入 `impact_todo.md`。
 - 若 `preflight_status` 是阻塞狀態：不做重用判斷，先回報 Git 阻塞。
+
+### 3-1. 納入 program inventory
+若有 `program_inventory.md` 或 `inventory_findings`：
+- 若 target 在 inventory 中為 `未分析`：策略至少為 `Analyze Fresh`。
+- 若 target 在 inventory 中為 `需更新` 或 `Changed`：策略至少為 `Patch`；若舊報告不可用，改 `Analyze Fresh`。
+- 若 target 在 inventory 中為 `需補章節`：策略為 `Patch`。
+- 若 target 在 inventory 中為 `共用元件已分析`：策略可為 `Reference Only`。
+- 若 target 在 inventory 中為 `Deleted`：不可直接分析舊路徑，需回報已刪除並列原報告路徑。
+- 若 inventory 的指定目標分析佇列含尚未分析前置依賴，回傳 `analysis_queue` 給主協調器，先處理前置依賴或標記待辦。
 
 ### 4. 判斷重用策略
 將結果分成四類：
@@ -105,6 +118,12 @@ analysis_registry/<project_name>/
 - 若只引用舊報告，更新 `last_referenced` 與引用目標。
 - 若有 Git preflight，更新 `git_history.md`。
 - 若 pull diff 命中其他已分析程式但本輪未更新，新增或更新 `impact_todo.md`。
+- 若本輪有 Java inventory，更新 `program_inventory.md`：
+  - 目標分析狀態
+  - 報告路徑
+  - 最後分析 commit
+  - 尚未分析清單
+  - 指定目標分析佇列
 
 ## 正式報告 commit 規則
 - `branch` 是操作參數與索引欄位，不是正式報告要呈現的內容。
@@ -153,6 +172,16 @@ analysis_registry/<project_name>/
 | | | Service / Controller / DAO / Job / Feature / Flow / Issue | uat / main | commit sha | 未分析 / 部分分析 / 已分析 / 需補章節 | | 是 / 否 | 快速結論、業務流程簡述、系統交易與資料流、交易資料格式、SQL與資料存取、系統時序圖、異常與風險、未確認關鍵證據 | YYYY-MM-DD | |
 ```
 
+## `program_inventory.md`
+完整模板由 `project_program_inventory.md` 與 `analysis_registry/_template/program_inventory.md` 維護。
+
+此檔用途：
+- 統計專案 `.java` 檔案總數。
+- 標記新增、刪除、移動、變更。
+- 標記已分析、未分析、需更新、需補章節、共用元件已分析。
+- 建立輕量依賴圖。
+- 提供 agent 自動分析尚未分析程式或指定目標依賴佇列。
+
 ## `shared_components.md` 模板
 ```markdown
 # [project_name] 共用元件清單
@@ -192,22 +221,27 @@ analysis_registry/<project_name>/
 - `registry_found`：是否找到索引。
 - `matched_reports`：命中的既有報告清單。
 - `matched_program_entries`：命中的程式清單列。
+- `matched_inventory_entries`：命中的 Java inventory 列。
 - `matched_shared_components`：可引用的共用元件。
 - `reuse_strategy`：`Reuse` / `Patch` / `Reference Only` / `Analyze Fresh`。
 - `reuse_reason`：採用策略的原因。
 - `coverage_gaps`：舊報告缺少的章節或證據。
 - `recommended_next_skill`：下一步建議使用的 skill。
 - `registry_updates_needed`：本輪完成後需更新的索引項目。
+- `inventory_updates_needed`：本輪完成後是否需更新 `program_inventory.md`。
+- `analysis_queue`：若有前置依賴或尚未分析程式，回傳建議分析佇列。
 - `git_history_updates_needed`：Git pull 歷程是否需更新。
 - `impact_todo_updates_needed`：其他受影響報告是否需加入待辦。
 
 ## 品質門檻
 - [ ] 是否先查 `analysis_registry/<project_name>/`？
+- [ ] 是否查 `program_inventory.md` 並納入未分析、需更新、刪除與分析佇列判斷？
 - [ ] 是否搜尋既有報告資料夾？
 - [ ] 是否明確判斷 `Reuse` / `Patch` / `Reference Only` / `Analyze Fresh`？
 - [ ] 若有 Git preflight，是否把 branch、commit、pull diff 影響納入重用策略？
 - [ ] 是否避免重複分析已完整分析的共用元件？
 - [ ] 是否標出舊報告缺少的新規格章節，特別是快速結論、業務流程、系統交易資料流、資料格式與 SQL？
 - [ ] 是否在產出或補充報告後更新 program index？
+- [ ] 是否在產出或補充報告後更新 program inventory？
 - [ ] 是否在 pull diff 命中其他已分析程式時更新 impact todo？
 - [ ] 是否在發現共用元件後更新 shared components？
