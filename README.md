@@ -284,6 +284,7 @@ scope_hint: 請先用 program_inventory.md 檢查 A 依賴的 B、C 是否已分
 - 必須有「系統交易與資料流」與「交易資料格式」，標明系統之間資料來源、目的地、傳輸方式、格式、主要欄位與結果。
 - 必須有「SQL 與資料存取」；有 SQL/Mapper/Repository/SP/table 時必須列出，沒有找到也要標示 `未發現` 或 `未確認`。
 - class、method、變數、完整 call tree 等技術細節應放在附錄，避免主體報告過長。
+- 若目標是純 VO/DTO/Request/Response/Entity，只需列出被哪些程式使用、屬性與型別；只有 VO/DTO 內含 validation、轉換、格式化、預設值、衍生欄位等邏輯時，才補內部邏輯說明。
 - 若跨系統、跨服務、MQ、gRPC callback、外部 API 或跨專案，必須輸出 Mermaid `sequenceDiagram` 系統架構交易時序圖。
 - 若流程超過 3 個節點，優先補 Mermaid 流程圖。
 - 第十人原則只作為內部審查使用，不輸出成正式報告章節。

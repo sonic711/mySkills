@@ -76,11 +76,31 @@ module-a/src/main/java/com/example/AService.java
 - 模組
 - package
 - top-level type：class / interface / enum / annotation / record / unknown
-- 角色推定：Controller / Service / Repository / DAO / Mapper / DTO / Entity / Config / Job / Listener / Client / Utility / Test / Unknown
+- 角色推定：Controller / Service / Repository / DAO / Mapper / VO / DTO / Request / Response / Entity / Config / Job / Listener / Client / Utility / Test / Unknown
 - 是否 test 檔
+- 資料物件判定：DataObjectOnly / DataObjectWithLogic / NotDataObject / Unknown
 - 最近掃描 commit
 
 角色推定只能作為盤點欄位，不可直接當正式分析結論。
+
+### 2-1. VO/DTO 純資料物件判定
+符合以下特徵時，標為 `DataObjectOnly`，不排入完整程式邏輯分析：
+- 類名或路徑顯示 VO / DTO / Request / Response / Payload / Entity / Record。
+- 內容主要是欄位、getter/setter、constructor、builder、equals/hashCode/toString、annotation。
+- 沒有明顯業務分支、資料轉換、驗證、格式化、預設值計算、外部呼叫、DB/MQ/API 呼叫或狀態改變。
+
+`DataObjectOnly` 的處理方式：
+- 只記錄被哪些程式使用。
+- 只列屬性名稱、型別、annotation 與簡短用途。
+- 不產生完整功能流程、系統交易圖、主要處理邏輯或深度方法分析。
+- 若被指定為分析目標，輸出資料物件摘要即可。
+
+若 VO/DTO 內含下列任一項，標為 `DataObjectWithLogic`，才需要補內部邏輯說明：
+- 自訂 validation / normalization / format / parse / convert 方法。
+- 欄位預設值、衍生欄位、狀態判斷、金額/日期/字串計算。
+- 呼叫 util、service、repository、client 或其他外部元件。
+- builder 或 setter 內有非單純賦值邏輯。
+- constructor 內有條件判斷或資料轉換。
 
 ### 3. 比對新增、刪除、移動、保留
 依舊清單與目前掃描結果判斷：
@@ -102,6 +122,8 @@ module-a/src/main/java/com/example/AService.java
 |----------|------|
 | `未分析` | 沒有正式報告，也不是已分析共用元件 |
 | `已分析` | 已有符合現行模板的正式報告 |
+| `資料物件已盤點` | 純 VO/DTO/Entity，只需欄位型別與使用者，不需完整分析 |
+| `資料物件需分析` | VO/DTO 內含邏輯，需要補內部邏輯說明 |
 | `需更新` | 程式檔 changed，或報告缺少現行必備章節 |
 | `需補章節` | 有舊報告但缺快速結論、業務流程、資料流、資料格式、SQL、未確認證據等章節 |
 | `共用元件已分析` | shared_components 標示已分析，後續目標可引用摘要 |
@@ -128,6 +150,7 @@ module-a/src/main/java/com/example/AService.java
 | `PossibleRuntimeDependency` | 方法呼叫、bean name、字串常數、route key 等可能 runtime 關聯 |
 | `DataDependency` | Entity、DTO、table、mapper、event payload 關聯 |
 | `SharedComponentDependency` | 共用工具、client、config、base class |
+| `DataObjectUsage` | 程式使用某 VO/DTO/Entity/Request/Response 作為輸入、輸出或中途資料 |
 
 ### 6. 產生分析佇列
 `inventory_mode=next_unanalyzed`：
@@ -147,6 +170,7 @@ module-a/src/main/java/com/example/AService.java
 - 若依賴尚未分析，排在 target 之前。
 - 若依賴是共用元件且已分析，列為 `ReferenceOnly`，不排入深度分析。
 - 若依賴太多，只納入與資料流、SQL、外部呼叫、回應組裝、業務分支相關的高價值依賴。
+- 純 VO/DTO 依賴不排入完整分析，只列為 `DataObjectSummary`；若該 VO/DTO 內含邏輯，才排入 `AnalyzeBeforeTarget`。
 
 排程原則：
 - 先分析被依賴且尚未分析的核心元件。
@@ -172,17 +196,24 @@ module-a/src/main/java/com/example/AService.java
 - 未分析：
 - 需更新：
 - 需補章節：
+- 資料物件已盤點：
+- 資料物件需分析：
 - 共用元件已分析：
 
 ## 2. Java 程式清單
-| 狀態 | 程式 | 路徑 | 模組 | package | 類型 | 角色推定 | 分析狀態 | 報告路徑 | 共用元件 | 最後掃描 commit | 備註 |
-|------|------|------|------|---------|------|----------|----------|----------|----------|----------------|------|
-| Active / Added / Changed / Moved / Deleted | XxxService.java | src/main/java/... | module-a | com.example | class / interface / enum / record / annotation / unknown | Service / Controller / DAO / DTO / Entity / Config / Job / Listener / Client / Utility / Test / Unknown | 未分析 / 已分析 / 需更新 / 需補章節 / 共用元件已分析 / 已刪除 | analysis_output/... | 是 / 否 | commit sha | |
+| 狀態 | 程式 | 路徑 | 模組 | package | 類型 | 角色推定 | 分析狀態 | 報告路徑 | 共用元件 | 資料物件判定 | 最後掃描 commit | 備註 |
+|------|------|------|------|---------|------|----------|----------|----------|----------|----------------|----------------|------|
+| Active / Added / Changed / Moved / Deleted | XxxService.java | src/main/java/... | module-a | com.example | class / interface / enum / record / annotation / unknown | Service / Controller / DAO / VO / DTO / Request / Response / Entity / Config / Job / Listener / Client / Utility / Test / Unknown | 未分析 / 已分析 / 資料物件已盤點 / 資料物件需分析 / 需更新 / 需補章節 / 共用元件已分析 / 已刪除 | analysis_output/... | 是 / 否 | DataObjectOnly / DataObjectWithLogic / NotDataObject / Unknown | commit sha | |
+
+## 2-1. VO/DTO 屬性與使用者
+| 程式 | 類型 | 屬性 | 型別 | annotation/限制 | 被哪些程式使用 | 是否含內部邏輯 | 內部邏輯摘要 |
+|------|------|------|------|-----------------|----------------|----------------|--------------|
+| XxxReqVO.java | VO / DTO / Request / Response / Entity | fieldName | String / BigDecimal / LocalDate / List<Xxx> | @NotNull / @JsonProperty / @Column | AService.java, BController.java | 否 / 是 / 未確認 | 純欄位 / convertXxx() / validateXxx() |
 
 ## 3. 輕量依賴圖
 | 程式 | 依賴程式 | 依賴類型 | 證據線索 | 分析狀態 | 排程建議 |
 |------|----------|----------|----------|----------|----------|
-| A.java | B.java | DirectCodeDependency / PossibleRuntimeDependency / DataDependency / SharedComponentDependency | import / injection / extends / field / DTO / mapper | 未分析 / 已分析 / 共用元件已分析 / Unknown | AnalyzeBeforeTarget / ReferenceOnly / Optional / Ignore |
+| A.java | B.java | DirectCodeDependency / PossibleRuntimeDependency / DataDependency / SharedComponentDependency / DataObjectUsage | import / injection / extends / field / DTO / mapper | 未分析 / 已分析 / 資料物件已盤點 / 共用元件已分析 / Unknown | AnalyzeBeforeTarget / ReferenceOnly / DataObjectSummary / Optional / Ignore |
 
 ## 4. 尚未分析清單
 | 優先序 | 程式 | 路徑 | 角色推定 | 原因 | 建議下一步 |
@@ -193,8 +224,9 @@ module-a/src/main/java/com/example/AService.java
 | 順序 | 程式 | 路徑 | 佇列原因 | 前置依賴 | 建議動作 |
 |------|------|------|----------|----------|----------|
 | 1 | B.java | | A 依賴 B 且 B 未分析 | | AnalyzeFresh |
-| 2 | C.java | | A 依賴 C 且 C 已是共用元件 | | ReferenceOnly |
-| 3 | A.java | | 使用者指定目標 | B.java, C.java | AnalyzeFresh / Patch |
+| 2 | CReqVO.java | | A 使用 CReqVO，且 CReqVO 是純資料物件 | | DataObjectSummary |
+| 3 | C.java | | A 依賴 C 且 C 已是共用元件 | | ReferenceOnly |
+| 4 | A.java | | 使用者指定目標 | B.java, CReqVO.java, C.java | AnalyzeFresh / Patch |
 
 ## 6. 刪除或移動紀錄
 | 狀態 | 舊路徑 | 新路徑 | 程式 | 原報告路徑 | 建議 |
@@ -206,7 +238,7 @@ module-a/src/main/java/com/example/AService.java
 回傳以下欄位：
 - `inventory_found`：是否找到既有 inventory。
 - `java_file_total`：目前 `.java` 檔案總數。
-- `inventory_summary`：Active / Added / Changed / Moved / Deleted / 已分析 / 未分析 / 需更新統計。
+- `inventory_summary`：Active / Added / Changed / Moved / Deleted / 已分析 / 未分析 / 需更新 / 資料物件已盤點 / 資料物件需分析統計。
 - `added_programs`：新增 `.java` 清單。
 - `deleted_programs`：刪除 `.java` 清單。
 - `changed_programs`：變更且可能需更新報告的清單。
@@ -214,6 +246,8 @@ module-a/src/main/java/com/example/AService.java
 - `dependency_graph`：輕量依賴圖。
 - `analysis_queue`：建議分析佇列。
 - `reference_only_programs`：已分析共用元件，可引用不重複分析。
+- `data_object_summaries`：純 VO/DTO/Entity 的欄位、型別與使用者摘要。
+- `data_objects_with_logic`：含內部邏輯、需進一步分析的 VO/DTO。
 - `inventory_update_path`：`analysis_registry/<project_name>/program_inventory.md`。
 
 ## 與其他 skill 的協作
@@ -229,5 +263,7 @@ module-a/src/main/java/com/example/AService.java
 - [ ] 是否和 `program_index.md`、`shared_components.md`、既有報告路徑對照？
 - [ ] 是否保留 Deleted/Moved 歷史而不是直接刪掉紀錄？
 - [ ] 是否建立輕量依賴圖，但沒有把它誤寫成交易事實？
+- [ ] 是否將純 VO/DTO 標成 `DataObjectOnly`，只列被使用者與屬性型別？
+- [ ] 若 VO/DTO 內含邏輯，是否標成 `DataObjectWithLogic` 並排入需要說明的項目？
 - [ ] 若指定 target，是否產生依賴前置分析佇列？
 - [ ] 是否讓 `program_inventory.md` 可作為 agent 自動分析尚未分析程式的依據？

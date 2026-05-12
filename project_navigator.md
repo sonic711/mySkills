@@ -42,6 +42,7 @@
 
 ### 5. 入口與路由線索
 - 判斷目標較接近 API、gRPC / MQ / workflow / batch 入口、內部業務層、資料存取層或外部介接層。
+- 若目標是 VO / DTO / Request / Response / Entity / Record，先標記為資料物件候選；後續只需確認被哪些程式使用與屬性型別，除非物件內有 validation、轉換、格式化、預設值、衍生欄位或其他內部邏輯。
 - 若不是直接入口，補查注入來源、dispatcher / router / grpc service / batch / workflow delegate 與觸發條件。
 
 ## 標準輸出模板
@@ -73,7 +74,7 @@
 ## 4. 周邊元件
 | 類型 | 名稱/路徑 | 關聯說明 |
 |------|-----------|----------|
-| Controller / Service / Repository / Client / Config / DTO / SQL | | |
+| Controller / Service / Repository / Client / Config / VO / DTO / Request / Response / Entity / SQL | | |
 
 ## 5. 入口與路由線索
 - 可能入口：
@@ -113,6 +114,7 @@
 ## 品質門檻
 - [ ] 是否先確認專案根目錄？
 - [ ] 是否清楚指出模組、路徑、層級？
+- [ ] 若目標是 VO/DTO，是否標記資料物件候選並避免誤判為完整流程元件？
 - [ ] 是否區分唯一命中與多候選？
 - [ ] 是否列出足夠周邊元件？
 - [ ] 若非直接入口，是否補到 dispatcher / router 線索？

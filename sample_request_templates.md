@@ -14,6 +14,7 @@
 - 正式報告要有「系統交易與資料流」與「交易資料格式」章節，標明系統之間資料來源、目的地、傳輸方式、格式、主要欄位與結果。
 - 正式報告要有「SQL 與資料存取」章節；有 SQL/Mapper/Repository/SP/table 時必須列出，沒有找到也要標示 `未發現` 或 `未確認`。
 - 技術細節、class、method、變數、完整 call tree 應放技術附錄，不要讓主體報告過長。
+- 若目標是純 VO/DTO/Request/Response/Entity，只需輸出被哪些程式使用、屬性與型別；VO/DTO 內含 validation、轉換、格式化、預設值、衍生欄位等邏輯時，才補內部邏輯說明。
 
 ## 共用欄位
 | 欄位 | 說明 |
@@ -57,6 +58,7 @@
 - 用於記錄 Java 檔案總數、已分析、未分析、新增、刪除、移動、需更新。
 - 可作為 agent 自動分析尚未分析程式的依據。
 - 分析指定程式時，可用 inventory 的輕量依賴圖先排 B、C 等前置依賴，再分析 A。
+- 純 VO/DTO 應標為 `DataObjectOnly`，排程建議為 `DataObjectSummary`；只有 `DataObjectWithLogic` 才排入需要邏輯分析的佇列。
 
 ## Templates
 ### Template 0：建立或更新 Java 程式清單
@@ -161,6 +163,16 @@ target_name: [類別名或檔名]
 target_type: class
 analysis_focus: 業務流程簡述, 系統交易與資料流, 資料格式, SQL與資料存取, 實作細節, 流程圖, 反證審查, 精確度檢查
 scope_hint: 我不想看原始碼，請先用業務角度簡述它負責的流程，再說明資料格式、資料流向與 SQL；class/method/變數細節放技術附錄
+output_requirements: 繁體中文, analysis_output/<project_name>/, md
+```
+
+### Template 3B：VO / DTO 資料物件摘要
+```text
+project_name: [專案名稱]
+target_name: [VO 或 DTO 類別名，例如 TxPayloadVO]
+target_type: class
+analysis_focus: 資料格式
+scope_hint: 如果這是純 VO/DTO，請只列出被哪些程式使用、屬性名稱、屬性型別、annotation/限制；若內部有 validation、轉換、格式化、預設值或衍生欄位邏輯，再說明該內部邏輯
 output_requirements: 繁體中文, analysis_output/<project_name>/, md
 ```
 

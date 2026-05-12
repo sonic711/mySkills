@@ -24,6 +24,7 @@
 - 若已有可重用報告或已分析共用元件，優先引用既有報告，只補缺口，不重複讀完整程式。
 - 若使用者要求盤點專案、檢查新增/刪除程式、找尚未分析程式、或要 agent 自動依序分析，先使用 `project_program_inventory.md` 建立/更新 `.java` 清單與分析佇列。
 - `program_inventory.md` 是 agent 自動分析的排程依據；分析指定目標時，若 inventory 顯示尚未分析的前置依賴，先依佇列處理前置依賴，再分析目標。
+- 若目標是純 VO/DTO/Request/Response/Entity/Record 且與程式邏輯無關，只輸出資料物件摘要：被哪些程式使用、屬性與型別。只有物件內含 validation、轉換、格式化、預設值、衍生欄位或其他內部邏輯時，才說明該邏輯。
 - 正式報告優先服務非系統負責人：先回答「這是什麼、業務上做什麼、資料怎麼在系統間流動、是否執行 SQL」，再把技術細節放到附錄。
 - 正文必須精簡；避免把每個 class、method、變數、依賴都攤在主體章節。只有使用者明確要求深度解剖時，才在附錄展開完整實作。
 - 指定 `branch` 時，分析基準必須是該分支 `git pull --ff-only` 後的狀態；pull 下來的其他程式異動若命中已分析報告，需更新舊文件或加入待辦清單。
@@ -103,7 +104,11 @@
    - `project_navigator.md` -> `dependency_mapper.md` -> `inter_service_communication.md` -> `roleIdentity_synthesizer.md` -> `tenth_man_auditor.md`
 6. 已知程式，重點是每個變數、方法、資料結構、完整流程
    - `project_navigator.md` -> `implementation_deep_dive.md` -> `tenth_man_auditor.md`
-7. 只想看專案導覽或先找入口
+7. 目標是純 VO/DTO/Request/Response/Entity/Record
+   - `project_program_inventory.md` / `project_navigator.md` -> `implementation_deep_dive.md`
+   - 若是 `DataObjectOnly`：只輸出資料物件摘要，不走完整主報告。
+   - 若是 `DataObjectWithLogic`：補 VO/DTO 內部邏輯說明，再視需要整合使用者與資料流。
+8. 只想看專案導覽或先找入口
    - `project_navigator.md`
 
 ## 標準流程
@@ -135,6 +140,8 @@
 ### 2. 目標確認
 - 確認 `project_name` / `project_path` / `target_name`。
 - 若目標不明或同名過多，先縮小範圍，不硬猜。
+- 若目標看起來是 VO / DTO / Request / Response / Entity / Record，先判斷是否為純資料物件。
+- 純資料物件只需要盤點「被哪些程式使用」與「屬性/型別」；不要套用完整功能分析模板。
 
 ### 3. 定位
 - 用 `project_navigator.md` 找出模組、路徑、層級、周邊元件、入口或 router 線索。
@@ -145,6 +152,7 @@
   - 功能反查：先找候選元件群與核心元件，並整理業務流程輪廓、系統資料流與可能 SQL 觸點。
   - 一般功能分析：補上快速結論、業務流程、系統交易與資料流、資料格式、SQL 與資料存取、主要異常；若跨系統，補系統架構交易時序圖。
   - 深度解剖：主報告仍保持精簡；完整變數、方法、局部變數、物件結構放技術附錄。
+  - 純 VO/DTO：只補資料物件摘要；若內含邏輯才補內部邏輯。
 
 ### 5. 角色與風險整合
 - 用 `roleIdentity_synthesizer.md` 整理角色、重要性、業務價值、修改風險與驗證重點。
@@ -316,6 +324,36 @@ flowchart TD
 - [Unknown] 尚缺資訊與需補查位置：
 ```
 
+## 純 VO/DTO 資料物件摘要模板
+```markdown
+# [project_name] / [target_name] 資料物件摘要
+
+## 1. 快速結論
+- 物件用途：
+- 類型：VO / DTO / Request / Response / Entity / Record / Unknown
+- 是否含內部邏輯：否 / 是 / 未確認
+- 是否需要完整程式分析：否 / 是
+
+## 2. 被哪些程式使用
+| 使用程式 | 路徑 | 使用方式 | 證據 |
+|----------|------|----------|------|
+| | | request / response / field / method parameter / return type / entity mapping / event payload | |
+
+## 3. 屬性與型別
+| 屬性 | 型別 | annotation/限制 | 用途或資料來源 | 去向 |
+|------|------|-----------------|----------------|------|
+| | | | | |
+
+## 4. 內部邏輯（只有存在時才填）
+| 方法/位置 | 邏輯內容 | 影響欄位 | 使用者 |
+|-----------|----------|----------|--------|
+| | validation / conversion / default / derive / format / parse | | |
+
+## 5. 未確認關鍵證據
+- [Unknown] 尚未確認的使用者：
+- [Unknown] 尚未確認的欄位用途：
+```
+
 ## 證據規則
 - `Confirmed`：有直接程式、設定、SQL、路由、呼叫或結構證據。
 - `Inferred`：由命名、位置、相鄰證據、慣例綜合推定。
@@ -330,6 +368,7 @@ flowchart TD
 - 只找到入口或只找到下游：輸出已確認片段與缺口，不補腦。
 - 大型模組：先抓核心鏈路與高價值證據，低價值引用可摘要。
 - 報告過長：保留第 1 到 11 章作為主體，將細節移到附錄；不要刪除 SQL、資料格式與跨系統流向。
+- 純 VO/DTO：降級為資料物件摘要，不產出完整流程與系統交易段落；若發現內部邏輯，再補內部邏輯說明。
 
 ## 對外回傳欄位
 - `resolved_target_path`
@@ -354,6 +393,8 @@ flowchart TD
 - [ ] 正式報告是否只標明分析基準 commit，不顯示 branch？
 - [ ] 若更新舊報告且本次 diff 命中目標，是否補「本次邏輯變更」章節？
 - [ ] 是否先定位，再做主分析？
+- [ ] 若目標是純 VO/DTO，是否只輸出使用者與屬性型別摘要？
+- [ ] 若 VO/DTO 內含邏輯，是否只針對內部邏輯補說明？
 - [ ] 是否區分 `Confirmed` / `Inferred` / `Unknown`？
 - [ ] 快速結論是否讓非系統負責人能在 1 分鐘內知道功能作用？
 - [ ] 是否有「業務流程簡述」，且用業務面向說明目的、參與對象、輸入、處理與結果？

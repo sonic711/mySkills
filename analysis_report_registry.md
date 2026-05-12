@@ -85,18 +85,21 @@ analysis_registry/<project_name>/
 - 若 target 在 inventory 中為 `未分析`：策略至少為 `Analyze Fresh`。
 - 若 target 在 inventory 中為 `需更新` 或 `Changed`：策略至少為 `Patch`；若舊報告不可用，改 `Analyze Fresh`。
 - 若 target 在 inventory 中為 `需補章節`：策略為 `Patch`。
+- 若 target 在 inventory 中為 `資料物件已盤點` 或 `DataObjectOnly`：策略為 `DataObjectSummary`，不重做完整分析。
+- 若 target 在 inventory 中為 `資料物件需分析` 或 `DataObjectWithLogic`：策略至少為 `Patch`，只補 VO/DTO 內部邏輯，不套完整功能報告。
 - 若 target 在 inventory 中為 `共用元件已分析`：策略可為 `Reference Only`。
 - 若 target 在 inventory 中為 `Deleted`：不可直接分析舊路徑，需回報已刪除並列原報告路徑。
 - 若 inventory 的指定目標分析佇列含尚未分析前置依賴，回傳 `analysis_queue` 給主協調器，先處理前置依賴或標記待辦。
 
 ### 4. 判斷重用策略
-將結果分成四類：
+將結果分成五類：
 
 | 策略 | 使用時機 | 行動 |
 |------|----------|------|
 | `Reuse` | 舊報告已涵蓋本次需求，且有「快速結論」、「業務流程簡述」、「系統交易與資料流」、「交易資料格式」、「SQL 與資料存取」、「未確認關鍵證據」；跨系統時也已有「系統架構交易時序圖」；若有 pull diff，必須是 `NoImpact` | 引用既有報告摘要，不重讀完整程式 |
 | `Patch` | 舊報告可用，但缺少新章節、主體過度技術化、證據格式過舊、使用者要求補特定面向，或 pull diff 命中目標/相關鏈路 | 只補缺口；若缺少快速結論、業務流程、系統資料流、資料格式或 SQL 摘要，用既有證據補成可快速閱讀版本；若邏輯有改變，正式報告要補「本次邏輯變更」 |
 | `Reference Only` | 目標是共用元件，或新目標會用到已分析共用元件 | 引用共用元件摘要，不重複分析共用細節 |
+| `DataObjectSummary` | 目標是純 VO/DTO/Request/Response/Entity，且沒有內部邏輯 | 只列被哪些程式使用、屬性、型別、annotation/限制 |
 | `Analyze Fresh` | 找不到報告、報告過舊、目標有重大不確定、或使用者明確要求重做 | 交給後續 skill 重新定位與分析 |
 
 ### 5. 共用元件判定
@@ -169,7 +172,7 @@ analysis_registry/<project_name>/
 
 | 程式/功能 | 路徑/線索 | 類型 | 分支 | 分析 commit | 分析狀態 | 報告路徑 | 共用元件 | 覆蓋範圍 | 最後分析 | 備註 |
 |-----------|-----------|------|------|-------------|----------|----------|----------|----------|----------|------|
-| | | Service / Controller / DAO / Job / Feature / Flow / Issue | uat / main | commit sha | 未分析 / 部分分析 / 已分析 / 需補章節 | | 是 / 否 | 快速結論、業務流程簡述、系統交易與資料流、交易資料格式、SQL與資料存取、系統時序圖、異常與風險、未確認關鍵證據 | YYYY-MM-DD | |
+| | | Service / Controller / DAO / VO / DTO / Entity / Job / Feature / Flow / Issue | uat / main | commit sha | 未分析 / 部分分析 / 已分析 / 資料物件已盤點 / 資料物件需分析 / 需補章節 | | 是 / 否 | 快速結論、業務流程簡述、系統交易與資料流、交易資料格式、SQL與資料存取、資料物件摘要、系統時序圖、異常與風險、未確認關鍵證據 | YYYY-MM-DD | |
 ```
 
 ## `program_inventory.md`
@@ -178,7 +181,7 @@ analysis_registry/<project_name>/
 此檔用途：
 - 統計專案 `.java` 檔案總數。
 - 標記新增、刪除、移動、變更。
-- 標記已分析、未分析、需更新、需補章節、共用元件已分析。
+- 標記已分析、未分析、需更新、需補章節、共用元件已分析、資料物件已盤點、資料物件需分析。
 - 建立輕量依賴圖。
 - 提供 agent 自動分析尚未分析程式或指定目標依賴佇列。
 
@@ -195,6 +198,8 @@ analysis_registry/<project_name>/
 - `未分析`：只知道名稱或路徑，尚無正式報告。
 - `部分分析`：報告只涵蓋定位、局部依賴或舊格式，無法完整重用。
 - `已分析`：已有符合現行模板的正式報告。
+- `資料物件已盤點`：純 VO/DTO/Entity，只需欄位型別與使用者，不需完整功能分析。
+- `資料物件需分析`：VO/DTO 內含 validation、轉換、格式化、預設值、衍生欄位或其他內部邏輯，需要補邏輯說明。
 - `需補章節`：已有報告，但缺少「快速結論」、「業務流程簡述」、「系統交易與資料流」、「交易資料格式」、「SQL 與資料存取」、跨系統必備的「系統架構交易時序圖」、未確認關鍵證據、facet 或其他本次必備內容。
 - `共用元件`：可被多個報告引用，避免重複分析。
 
@@ -223,7 +228,8 @@ analysis_registry/<project_name>/
 - `matched_program_entries`：命中的程式清單列。
 - `matched_inventory_entries`：命中的 Java inventory 列。
 - `matched_shared_components`：可引用的共用元件。
-- `reuse_strategy`：`Reuse` / `Patch` / `Reference Only` / `Analyze Fresh`。
+- `reuse_strategy`：`Reuse` / `Patch` / `Reference Only` / `DataObjectSummary` / `Analyze Fresh`。
+- `data_object_strategy`：`DataObjectSummary` / `DataObjectWithLogic` / `NotDataObject`。
 - `reuse_reason`：採用策略的原因。
 - `coverage_gaps`：舊報告缺少的章節或證據。
 - `recommended_next_skill`：下一步建議使用的 skill。
@@ -236,6 +242,8 @@ analysis_registry/<project_name>/
 ## 品質門檻
 - [ ] 是否先查 `analysis_registry/<project_name>/`？
 - [ ] 是否查 `program_inventory.md` 並納入未分析、需更新、刪除與分析佇列判斷？
+- [ ] 是否將純 VO/DTO 導向 `DataObjectSummary`，避免套完整報告？
+- [ ] 若 VO/DTO 內含邏輯，是否只補內部邏輯說明？
 - [ ] 是否搜尋既有報告資料夾？
 - [ ] 是否明確判斷 `Reuse` / `Patch` / `Reference Only` / `Analyze Fresh`？
 - [ ] 若有 Git preflight，是否把 branch、commit、pull diff 影響納入重用策略？
